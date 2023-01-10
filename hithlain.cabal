@@ -1,0 +1,30 @@
+cabal-version:      3.6
+name:               hithlain
+version:            0.1.0.0
+synopsis:           Blog generator using Hakyll/Haskell
+description:        This is the blog generator behind the blog at
+                    https://mihai.page. However, other users can also use this
+                    if they so desire.
+
+                    Consult the README.md file for more details.
+homepage:           https://mihai.page  -- TODO: write article about the generator
+license:            BSD-3-Clause
+license-file:       LICENSE.md
+author:             Mihai Maruseac
+maintainer:         mihai.maruseac@gmail.com
+copyright:          © 2023 Mihai Maruseac
+category:           Web
+build-type:         Simple
+extra-doc-files:    README.md, CHANGELOG.md
+
+common warnings
+    ghc-options: -Wall
+
+executable hithlain
+  import:           warnings
+  hs-source-dirs:   src
+  main-is:          main.hs
+  default-language: Haskell2010
+  other-modules:
+  build-depends:
+      base ^>=4.16.4.0
