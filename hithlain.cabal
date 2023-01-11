@@ -28,3 +28,4 @@ executable hithlain
   other-modules:
   build-depends:
       base ^>=4.16.4.0
+    , optparse-applicative ^>=0.17.0.0
