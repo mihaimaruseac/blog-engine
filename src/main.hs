@@ -12,5 +12,9 @@ The entry point of the site generator.
 
 module Main where
 
+import CLI
+
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+  opts <- parseCLI
+  print opts
