@@ -39,7 +39,7 @@ data Command
   = Build {dry_run :: Bool} -- ^ Generates the site.
   | Clean -- ^ Removes all generated files.
   | Rebuild -- ^ Does a 'Clean' followed by a 'Build'.
-  | Watch {host :: String, port :: Int, no_server :: Bool}
+  | Watch {host :: Maybe String, port :: Maybe Int, no_server :: Bool}
   -- ^ Automcompile on changes, start preview server.
   | Check {internal_links :: Bool} -- ^ Validate the output.
   deriving (Eq, Show)
@@ -134,26 +134,26 @@ watchCommandParser = OA.command "watch" parser <> OA.metavar "watch"
     opts = OA.fullDesc <> OA.progDesc "Clean and build again"
 
 -- | Adds `[-h|--host=HOST/IP]` to watch command.
-hostParser :: OA.Parser String
-hostParser = OA.strOption $ mconcat
+hostParser :: OA.Parser (Maybe String)
+hostParser = OA.option OA.auto $ mconcat
   [ OA.long "host"
   , OA.short 'h'
   , OA.help "Host to bind on"
   , OA.metavar "HOST/IP"
-  , OA.value ""
-  , OA.showDefault
+  , OA.value Nothing
+  , OA.showDefaultWith $ const "Use value from config or hakyll's default"
   , OA.action "hostname"
   ]
 
 -- | Adds `[-p|--port=PORT]` to watch command.
-portParser :: OA.Parser Int
+portParser :: OA.Parser (Maybe Int)
 portParser = OA.option OA.auto $ mconcat
   [ OA.long "port"
   , OA.short 'p'
   , OA.help "Port to listen on"
   , OA.metavar "PORT"
-  , OA.value 0
-  , OA.showDefault
+  , OA.value Nothing
+  , OA.showDefaultWith $ const "Use value from config or hakyll's default"
   ]
 
 -- | Adds `[--no-server]` to watch command.
