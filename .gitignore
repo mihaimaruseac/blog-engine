@@ -2,3 +2,4 @@
 !.github/
 !.gitignore
 dist-newstyle/
+config.yml
