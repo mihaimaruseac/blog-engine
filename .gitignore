@@ -2,4 +2,5 @@
 !.github/
 !.gitignore
 dist-newstyle/
+_cache/
 config.yml
