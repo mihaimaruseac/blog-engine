@@ -14,6 +14,7 @@ module Main where
 
 import CLI
 
+-- | Main function: parse CLI, config, then merge and hand over to Hakyll.
 main :: IO ()
 main = do
   opts <- parseCLI

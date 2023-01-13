@@ -1,20 +1,31 @@
 {-|
 Module: CLI
-Description: The implementation of CLI arguments
+Description: The parsing of CLI arguments
 Copyright: (c) Mihai Maruseac 2023
 License: BSD-3-Clause
 Maintainer: mihai.maruseac@gmail.com
 Stability: experimental
 Portability: portable
 
-The implementation of CLI arguments.
+The implementation of CLI arguments parsing occurs in this module.
+
+We are parsing the arguments ourselves instead of using Hakyll's
+implementation even though these are just a subset of Hakyll's CLI. There are
+two reasons for this: first, we don't want to use all of Hakyll's commands as
+some don't make sense (e.g., given the way we use the generator, it does not
+make sense to have a rebuild command, we always need clean and build). The
+other reason is that we want to pass some configuration via a config file,
+which will then be merged with the flags passed in CLI and with Hakyll's
+defaults (flags take precedence over config which then takes precedence over
+defaults).
+
+See also "Config" module.
 -}
 
 module CLI
-  (
-    -- * argument parsing API
+  ( -- * Argument parsing API
     parseCLI
-    -- * argument parsing results
+    -- * Argument parsing results
   , CLI(..)
   , Command(..)
   ) where
@@ -23,18 +34,22 @@ import Control.Applicative ((<|>))
 import qualified Options.Applicative as OA
 
 -- | Holds the result of 'parseCLI', the result of parsing command line
--- arguments. It is just a wrapper around 'Command', allowing for setting up
--- verbosity and a different config file if needed. The real work is happening
--- inside 'Command'.
+-- arguments.
+--
+-- It is just a wrapper around 'Command', allowing for setting up verbosity
+-- and a different config file if needed. The real work is happening inside
+-- 'Command'.
 data CLI = CLI
-  { verbose :: Bool  -- ^ Verbosity (`[-v|--verbose]`)
-  , configFile :: FilePath -- ^ Configuration file (`[-c|--config]`)
+  { verbose :: Bool  -- ^ Verbosity (@[-v|--verbose]@)
+  , configFile :: FilePath -- ^ Configuration file (@[-c|--config]@)
   , command :: Command -- ^ The real subcommand to be executed.
   } deriving (Eq, Show)
 
--- | The commands we support. These are a subset of the commands that `hakyll`
--- supports and not all arguments are provided there either. Each command will
--- call the corresponding `hakyll` implementation.
+-- | The commands we support.
+--
+-- These are a subset of the commands that @hakyll@ supports and not all
+-- arguments are provided there either. Each command will call the
+-- corresponding @hakyll@ implementation.
 data Command
   = Build {dry_run :: Bool} -- ^ Generates the site.
   | Clean -- ^ Removes all generated files.
@@ -68,7 +83,7 @@ topLevelParserInfo = OA.info (OA.helper <*> topLevelParser) $ mconcat
 topLevelParser :: OA.Parser CLI
 topLevelParser = CLI <$> verbosityParser <*> configFileParser <*> cmdParser
 
--- | Adds `[-v|--verbose]` to command flags (globally).
+-- | Adds @[-v|--verbose]@ to command flags (globally).
 verbosityParser :: OA.Parser Bool
 verbosityParser = OA.switch $ mconcat
   [ OA.long "verbose"
@@ -76,7 +91,7 @@ verbosityParser = OA.switch $ mconcat
   , OA.help "Run in verbose mode"
   ]
 
--- | Adds `[-c|--config=FILE]` to command flags (globally).
+-- | Adds @[-c|--config=FILE]@ to command flags (globally).
 configFileParser :: OA.Parser FilePath
 configFileParser = OA.strOption $ mconcat
   [ OA.long "config"
@@ -88,7 +103,7 @@ configFileParser = OA.strOption $ mconcat
   , OA.action "file"
   ]
 
--- | Parser for the commands to be sent to `hakyll` library.
+-- | Parser for the commands to be sent to @hakyll@ library.
 -- This is the real work.
 cmdParser :: OA.Parser Command
 cmdParser = OA.hsubparser buildCommandParser
@@ -104,7 +119,7 @@ buildCommandParser = OA.command "build" parser <> OA.metavar "build"
     parser = OA.info (Build <$> dryRunParser) opts
     opts = OA.fullDesc <> OA.progDesc "Generate the site"
 
--- | Adds `[-n|--dry-run]` to build command.
+-- | Adds @[-n|--dry-run]@ to build command.
 dryRunParser :: OA.Parser Bool
 dryRunParser = OA.switch $ mconcat
   [ OA.long "dry-run"
@@ -133,7 +148,7 @@ watchCommandParser = OA.command "watch" parser <> OA.metavar "watch"
     parser = OA.info (Watch <$> hostParser <*> portParser <*> serverParser) opts
     opts = OA.fullDesc <> OA.progDesc "Clean and build again"
 
--- | Adds `[-h|--host=HOST/IP]` to watch command.
+-- | Adds @[-h|--host=HOST/IP]@ to watch command.
 hostParser :: OA.Parser (Maybe String)
 hostParser = OA.option OA.auto $ mconcat
   [ OA.long "host"
@@ -145,7 +160,7 @@ hostParser = OA.option OA.auto $ mconcat
   , OA.action "hostname"
   ]
 
--- | Adds `[-p|--port=PORT]` to watch command.
+-- | Adds @[-p|--port=PORT]@ to watch command.
 portParser :: OA.Parser (Maybe Int)
 portParser = OA.option OA.auto $ mconcat
   [ OA.long "port"
@@ -156,7 +171,7 @@ portParser = OA.option OA.auto $ mconcat
   , OA.showDefaultWith $ const "Use value from config or hakyll's default"
   ]
 
--- | Adds `[--no-server]` to watch command.
+-- | Adds @[--no-server]@ to watch command.
 serverParser :: OA.Parser Bool
 serverParser = OA.switch $ mconcat
   [ OA.long "no-server"
@@ -170,7 +185,7 @@ checkCommandParser = OA.command "check" parser <> OA.metavar "check"
     parser = OA.info (Check <$> internalLinksParser) opts
     opts = OA.fullDesc <> OA.progDesc "Validate the site output"
 
--- | Adds `[--internal-links]` to check command.
+-- | Adds @[--internal-links]@ to check command.
 internalLinksParser :: OA.Parser Bool
 internalLinksParser = OA.switch $ mconcat
   [ OA.long "internal-links"
