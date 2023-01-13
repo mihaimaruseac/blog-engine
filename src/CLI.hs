@@ -32,6 +32,7 @@ module CLI
 
 import Control.Applicative ((<|>))
 import qualified Options.Applicative as OA
+import Text.Read (readEither)
 
 -- | Holds the result of 'parseCLI', the result of parsing command line
 -- arguments.
@@ -141,7 +142,7 @@ watchCommandParser = OA.command "watch" parser <> OA.metavar "watch"
 
 -- | Adds @[-h|--host=HOST/IP]@ to watch command.
 hostParser :: OA.Parser (Maybe String)
-hostParser = OA.option OA.auto $ mconcat
+hostParser = OA.option (OA.eitherReader readToMaybe) $ mconcat
   [ OA.long "host"
   , OA.short 'h'
   , OA.help "Host to bind on"
@@ -153,7 +154,7 @@ hostParser = OA.option OA.auto $ mconcat
 
 -- | Adds @[-p|--port=PORT]@ to watch command.
 portParser :: OA.Parser (Maybe Int)
-portParser = OA.option OA.auto $ mconcat
+portParser = OA.option (OA.eitherReader readToMaybe) $ mconcat
   [ OA.long "port"
   , OA.short 'p'
   , OA.help "Port to listen on"
@@ -161,6 +162,22 @@ portParser = OA.option OA.auto $ mconcat
   , OA.value Nothing
   , OA.showDefaultWith $ const "Use value from config or hakyll's default"
   ]
+
+-- | Parses an argument to an option and wraps it in a @Maybe a@ type.
+--
+-- Allows the following scenarios:
+--
+-- +----------------+-----------------------+--------------------------------+
+-- |     Command    |         Result        |            Rationale           |
+-- +----------------+-----------------------+--------------------------------+
+-- | @watch@        | stored as @Nothing@   | no port argument provided      |
+-- +----------------+-----------------------+--------------------------------+
+-- | @watch -p 123@ | stored as @Just 123@  | valid port argument provided   |
+-- +----------------+-----------------------+--------------------------------+
+-- | @watch -p asd@ | fail argument parsing | invalid port argument provided |
+-- +----------------+-----------------------+--------------------------------+
+readToMaybe :: Read a => String -> Either String (Maybe a)
+readToMaybe = fmap Just . readEither
 
 -- | Adds @[--no-server]@ to watch command.
 serverParser :: OA.Parser Bool
