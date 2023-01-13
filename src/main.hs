@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 {-|
 Module: Main
 Description: The entry point of the site generator
@@ -12,13 +14,18 @@ The entry point of the site generator.
 
 module Main where
 
+import qualified Hakyll as HK
+import qualified Hakyll.Core.Logger as HK
+
 import CLI
 import Config
 
 -- | Main function: parse CLI, config, then merge and hand over to Hakyll.
 main :: IO ()
 main = do
-  opts <- parseCLI
+  opts@CLI{..} <- parseCLI
   print opts
-  cfs <- parseConfig (configFile opts)
+  cfs <- parseConfig configFile
   print cfs
+  logger <- HK.new $ if verbose then HK.Debug else HK.Message
+  HK.debug logger "All is good"
