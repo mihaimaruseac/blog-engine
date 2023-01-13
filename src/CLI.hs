@@ -53,7 +53,6 @@ data CLI = CLI
 data Command
   = Build {dry_run :: Bool} -- ^ Generates the site.
   | Clean -- ^ Removes all generated files.
-  | Rebuild -- ^ Does a 'Clean' followed by a 'Build'.
   | Watch {host :: Maybe String, port :: Maybe Int, no_server :: Bool}
   -- ^ Automcompile on changes, start preview server.
   | Check {internal_links :: Bool} -- ^ Validate the output.
@@ -108,7 +107,6 @@ configFileParser = OA.strOption $ mconcat
 cmdParser :: OA.Parser Command
 cmdParser = OA.hsubparser buildCommandParser
   <|> OA.hsubparser cleanCommandParser
-  <|> OA.hsubparser rebuildCommandParser
   <|> OA.hsubparser watchCommandParser
   <|> OA.hsubparser checkCommandParser
 
@@ -133,13 +131,6 @@ cleanCommandParser = OA.command "clean" parser <> OA.metavar "clean"
   where
     parser = OA.info (pure Clean) opts
     opts = OA.fullDesc <> OA.progDesc "Clean up and remove cache"
-
--- | Generates the rebuild command.
-rebuildCommandParser :: OA.Mod OA.CommandFields Command
-rebuildCommandParser = OA.command "rebuild" parser <> OA.metavar "rebuild"
-  where
-    parser = OA.info (pure Rebuild) opts
-    opts = OA.fullDesc <> OA.progDesc "Clean and build again"
 
 -- | Generates the watch command.
 watchCommandParser :: OA.Mod OA.CommandFields Command
