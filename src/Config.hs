@@ -81,6 +81,8 @@ instance Yaml.FromJSON Config where
 data Patterns = Patterns
   { -- | pattern for @index.html@ at root of website (default: @index.html@)
     indexPattern :: HK.Pattern
+  , -- | pattern for templates
+    templatesPattern :: HK.Pattern
   , -- | pattern for CSS files
     cssPattern :: HK.Pattern
   , -- | pattern for custom fonts
@@ -90,6 +92,7 @@ data Patterns = Patterns
 instance Yaml.FromJSON Patterns where
   parseJSON = Yaml.withObject "Patterns" $ \v -> Patterns
     <$> parseOrDefault v "index" indexPattern
+    <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefault v "css" cssPattern
     <*> parseOrDefault v "fonts" fontPattern
     where
@@ -105,6 +108,7 @@ instance Yaml.FromJSON Patterns where
 defaultPatterns :: Patterns
 defaultPatterns = Patterns
   { indexPattern = "index.html"
+  , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = "css/*"
   , fontPattern = "fonts/*"
   }

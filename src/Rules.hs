@@ -36,6 +36,7 @@ siteRules :: Patterns -> Rules ()
 siteRules Patterns{..} = do
   match cssPattern cssRules
   match fontPattern fontRules
+  match templatesPattern templatesRules
   match indexPattern indexRules
 
 -- | The rules to generate CSS files.
@@ -53,6 +54,10 @@ fontRules :: Rules ()
 fontRules = do
   route idRoute
   compile copyFileCompiler
+
+-- | The rules to compile the templates.
+templatesRules :: Rules ()
+templatesRules = compile templateCompiler
 
 -- | The rules to build the root @index.html@ page.
 indexRules :: Rules ()
