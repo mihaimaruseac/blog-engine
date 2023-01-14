@@ -28,6 +28,7 @@ executable hithlain
   other-modules:
     , CLI
     , Config
+    , Rules
   build-depends:
     , base ^>=4.16.4.0
     , hakyll ^>=4.15.1.1

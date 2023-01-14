@@ -24,6 +24,7 @@ import System.Exit (exitWith)
 
 import CLI
 import Config
+import Rules
 
 -- | Main function: parse CLI, config, then merge and hand over to Hakyll.
 --
@@ -35,7 +36,7 @@ main = do
   Config{..} <- parseConfig configFile
   logger <- HK.new $ if verbose then HK.Debug else HK.Message
   let config = HK.defaultConfiguration { HK.providerDirectory = contentPath }
-  let rules = undefined -- TODO(mihaimaruseac): Define generator rules
+  let rules = siteRules patterns
   case command of
     Build dry -> HK.build (whatMode dry) config logger rules >>= exitWith
     Clean -> HK.clean config logger
