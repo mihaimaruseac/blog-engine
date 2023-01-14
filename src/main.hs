@@ -38,7 +38,7 @@ main = do
   let rules = undefined -- TODO(mihaimaruseac): Define generator rules
   case command of
     Build dry -> HK.build (whatMode dry) config logger rules >>= exitWith
-    Clean -> HK.clean config rules
+    Clean -> HK.clean config logger
     Check internal -> HK.check config logger (whatLinks internal) >>= exitWith
     Watch host' port' runServer -> do
       let config' = mergeWatchConfig config (host' <?> host) (port' <?> port)
