@@ -35,6 +35,7 @@ import Config (Patterns(..))
 siteRules :: Patterns -> Rules ()
 siteRules Patterns{..} = match indexPattern indexCompiler
 
+-- | The compiler for the root @index.html@ page.
 indexCompiler :: Rules ()
 indexCompiler = do
   route idRoute

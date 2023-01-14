@@ -59,7 +59,7 @@ data Config = Config
   , -- | Default port for the @watch --port=PORT@ option
     port :: Maybe Int
   , -- | Patterns for the paths used by the generator. See
-    -- 'Patterns' and TODO(mihaimaruseac): Define & link rules
+    -- 'Patterns' and "Rules" module.
     patterns :: Patterns
   } deriving (Show)
 
@@ -77,9 +77,10 @@ instance Yaml.FromJSON Config where
 -- index file, or for the posts.
 --
 -- This structure is passed directly to the rules generator
--- TODO(mihaimaruseac): Define rules generator, link to it
+-- ('Rules.siteRules').
 data Patterns = Patterns
-  { indexPattern :: HK.Pattern
+  { -- | pattern for @index.html@ at root of website (default: @index.html@)
+    indexPattern :: HK.Pattern
   } deriving (Show)
 
 instance Yaml.FromJSON Patterns where
