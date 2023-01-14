@@ -83,12 +83,15 @@ data Patterns = Patterns
     indexPattern :: HK.Pattern
   , -- | pattern for CSS files
     cssPattern :: HK.Pattern
+  , -- | pattern for custom fonts
+    fontPattern :: HK.Pattern
   } deriving (Show)
 
 instance Yaml.FromJSON Patterns where
   parseJSON = Yaml.withObject "Patterns" $ \v -> Patterns
     <$> parseOrDefault v "index" indexPattern
     <*> parseOrDefault v "css" cssPattern
+    <*> parseOrDefault v "fonts" fontPattern
     where
       parseOrDefault v key def = toHK (v .:? key) .!= def defaultPatterns
       toHK = fmap $ fmap unwrap
@@ -103,6 +106,7 @@ defaultPatterns :: Patterns
 defaultPatterns = Patterns
   { indexPattern = "index.html"
   , cssPattern = "css/*"
+  , fontPattern = "fonts/*"
   }
 
 -- | Netwtype to wrap around 'Hakyll.Core.Indetifier.Pattern.Pattern' to add a

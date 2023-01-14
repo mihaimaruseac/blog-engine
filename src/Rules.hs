@@ -35,6 +35,7 @@ import Config (Patterns(..))
 siteRules :: Patterns -> Rules ()
 siteRules Patterns{..} = do
   match cssPattern cssRules
+  match fontPattern fontRules
   match indexPattern indexRules
 
 -- | The rules to generate CSS files.
@@ -44,6 +45,14 @@ cssRules :: Rules ()
 cssRules = do
   route idRoute
   compile compressCssCompiler
+
+-- | The rules to generate the font CSS style.
+--
+-- Just copy them to destination.
+fontRules :: Rules ()
+fontRules = do
+  route idRoute
+  compile copyFileCompiler
 
 -- | The rules to build the root @index.html@ page.
 indexRules :: Rules ()
