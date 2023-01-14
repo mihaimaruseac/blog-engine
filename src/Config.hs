@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
 {-|
@@ -25,11 +25,15 @@ module Config
     parseConfig
     -- * Configuration structure
   , Config(..)
+    -- * Patterns for configuring the generator
+  , Patterns(..)
   ) where
 
+import Control.Applicative ((<|>))
 import Control.Monad ((>=>))
 import qualified Data.Yaml as Yaml
-import GHC.Generics
+import Data.Yaml as Yaml ((.:), (.:?), (.!=))
+import qualified Hakyll as HK
 import System.Exit (die)
 
 -- | The 'parseConfig' function handles the command line arguments.
@@ -54,6 +58,52 @@ data Config = Config
     host :: Maybe String
   , -- | Default port for the @watch --port=PORT@ option
     port :: Maybe Int
-  } deriving (Eq, Show, Generic)
+  , -- | Patterns for the paths used by the generator. See
+    -- 'Patterns' and TODO(mihaimaruseac): Define & link rules
+    patterns :: Patterns
+  } deriving (Show)
 
-instance Yaml.FromJSON Config
+instance Yaml.FromJSON Config where
+  parseJSON = Yaml.withObject "Config" $ \v -> Config
+    <$> v .: "contentPath"
+    <*> v .:? "host"
+    <*> v .:? "port"
+    <*> v .:? "patterns" .!= defaultPatterns
+
+-- | The configuration of the patterns used by the generator.
+--
+-- This allows customizing the paths used in the generator to match in rules.
+-- For example, the config file could specify a different path for the main
+-- index file, or for the posts.
+--
+-- This structure is passed directly to the rules generator
+-- TODO(mihaimaruseac): Define rules generator, link to it
+data Patterns = Patterns
+  { indexPattern :: HK.Pattern
+  } deriving (Show)
+
+instance Yaml.FromJSON Patterns where
+  parseJSON = Yaml.withObject "Patterns" $ \v -> Patterns
+    <$> parseOrDefault v "index" indexPattern
+    where
+      parseOrDefault v key def = toHK (v .:? key) .!= def defaultPatterns
+      toHK = fmap $ fmap unwrap
+
+-- | Default patterns.
+--
+-- If the config file doesn't specify any pattern or some of these are
+-- missing, we will fill the missing ones with the values from this.
+defaultPatterns :: Patterns
+defaultPatterns = Patterns
+  { indexPattern = "index.html"
+  }
+
+-- | Netwtype to wrap around 'Hakyll.Core.Indetifier.Pattern.Pattern' to add a
+-- 'FromJSON' instance
+newtype WrappedPattern = WP { unwrap :: HK.Pattern } deriving (Show)
+
+instance Yaml.FromJSON WrappedPattern where
+  parseJSON = Yaml.withObject "Pattern" $ \v -> parseGlob v <|> parseRegex v
+    where
+      parseGlob v = WP . HK.fromGlob <$> v .: "glob"
+      parseRegex v = WP . HK.fromRegex <$> v .: "regex"
