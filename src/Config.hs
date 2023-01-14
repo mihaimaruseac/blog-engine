@@ -79,7 +79,9 @@ instance Yaml.FromJSON Config where
 -- This structure is passed directly to the rules generator
 -- ('Rules.siteRules').
 data Patterns = Patterns
-  { -- | pattern for @index.html@ at root of website (default: @index.html@)
+  { -- | default html page template (root template)
+    defaultTemplate :: HK.Identifier
+  , -- | pattern for @index.html@ at root of website (default: @index.html@)
     indexPattern :: HK.Pattern
   , -- | pattern for templates
     templatesPattern :: HK.Pattern
@@ -91,34 +93,45 @@ data Patterns = Patterns
 
 instance Yaml.FromJSON Patterns where
   parseJSON = Yaml.withObject "Patterns" $ \v -> Patterns
-    <$> parseOrDefault v "index" indexPattern
+    <$> parseOrDefaultI v "default_template" defaultTemplate
+    <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "templates" templatesPattern
-    <*> parseOrDefault v "css" cssPattern
-    <*> parseOrDefault v "fonts" fontPattern
+    <*> parseOrDefaultP v "css" cssPattern
+    <*> parseOrDefaultP v "fonts" fontPattern
     where
-      parseOrDefault v key def = toHK (v .:? key) .!= def defaultPatterns
-      toHK = fmap $ fmap unwrap
+      parseOrDefaultI v key def = toHKI (v .:? key) .!= def defaultPatterns
+      parseOrDefaultP v key def = toHKP (v .:? key) .!= def defaultPatterns
+      toHKP = fmap $ fmap unwrapP
+      toHKI = fmap $ fmap unwrapI
 
 -- | Default patterns.
 --
 -- If the config file doesn't specify any pattern or some of these are
 -- missing, we will fill the missing ones with the values from this.
---
--- Strings here are glob-patterns. Regexps are constructed explicitly.
 defaultPatterns :: Patterns
 defaultPatterns = Patterns
-  { indexPattern = "index.html"
+  { defaultTemplate = "templates/default.html"
+  , indexPattern = HK.fromGlob "index.html"
   , templatesPattern = HK.fromGlob "templates/*"
-  , cssPattern = "css/*"
-  , fontPattern = "fonts/*"
+  , cssPattern = HK.fromGlob "css/*"
+  , fontPattern = HK.fromGlob "fonts/*"
   }
 
 -- | Netwtype to wrap around 'Hakyll.Core.Indetifier.Pattern.Pattern' to add a
 -- 'FromJSON' instance
-newtype WrappedPattern = WP { unwrap :: HK.Pattern } deriving (Show)
+newtype WrappedPattern = WP { unwrapP :: HK.Pattern } deriving (Show)
 
 instance Yaml.FromJSON WrappedPattern where
   parseJSON = Yaml.withObject "Pattern" $ \v -> parseGlob v <|> parseRegex v
     where
       parseGlob v = WP . HK.fromGlob <$> v .: "glob"
       parseRegex v = WP . HK.fromRegex <$> v .: "regex"
+
+-- | Netwtype to wrap around 'Hakyll.Core.Indetifier.Pattern.Identifier' to
+-- add a 'FromJSON' instance
+newtype WrappedIdentifier = WI { unwrapI :: HK.Identifier } deriving (Show)
+
+instance Yaml.FromJSON WrappedIdentifier where
+  parseJSON = Yaml.withObject "Identifier" parsePath
+    where
+      parsePath v = WI . HK.fromFilePath <$> v .: "path"

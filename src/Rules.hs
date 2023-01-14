@@ -37,7 +37,7 @@ siteRules Patterns{..} = do
   match cssPattern cssRules
   match fontPattern fontRules
   match templatesPattern templatesRules
-  match indexPattern indexRules
+  match indexPattern (indexRules defaultTemplate)
 
 -- | The rules to generate CSS files.
 --
@@ -60,7 +60,9 @@ templatesRules :: Rules ()
 templatesRules = compile templateCompiler
 
 -- | The rules to build the root @index.html@ page.
-indexRules :: Rules ()
-indexRules = do
+indexRules :: Identifier -> Rules ()
+indexRules defaultTemplate = do
   route idRoute
-  compile copyFileCompiler
+  compile $ do
+    body <- getResourceBody
+    loadAndApplyTemplate defaultTemplate defaultContext body
