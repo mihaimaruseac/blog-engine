@@ -63,6 +63,10 @@ templatesRules = compile templateCompiler
 indexRules :: Identifier -> Rules ()
 indexRules defaultTemplate = do
   route idRoute
-  compile $ do
-    body <- getResourceBody
-    loadAndApplyTemplate defaultTemplate defaultContext body
+  compile $ indexCompiler defaultTemplate
+
+-- | The compiler for index pages.
+indexCompiler :: Identifier -> Compiler (Item String)
+indexCompiler defaultTemplate = do
+  body <- getResourceBody
+  loadAndApplyTemplate defaultTemplate defaultContext body
