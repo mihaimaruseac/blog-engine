@@ -81,11 +81,14 @@ instance Yaml.FromJSON Config where
 data Patterns = Patterns
   { -- | pattern for @index.html@ at root of website (default: @index.html@)
     indexPattern :: HK.Pattern
+  , -- | pattern for CSS files
+    cssPattern :: HK.Pattern
   } deriving (Show)
 
 instance Yaml.FromJSON Patterns where
   parseJSON = Yaml.withObject "Patterns" $ \v -> Patterns
     <$> parseOrDefault v "index" indexPattern
+    <*> parseOrDefault v "css" cssPattern
     where
       parseOrDefault v key def = toHK (v .:? key) .!= def defaultPatterns
       toHK = fmap $ fmap unwrap
@@ -94,9 +97,12 @@ instance Yaml.FromJSON Patterns where
 --
 -- If the config file doesn't specify any pattern or some of these are
 -- missing, we will fill the missing ones with the values from this.
+--
+-- Strings here are glob-patterns. Regexps are constructed explicitly.
 defaultPatterns :: Patterns
 defaultPatterns = Patterns
   { indexPattern = "index.html"
+  , cssPattern = "css/*"
   }
 
 -- | Netwtype to wrap around 'Hakyll.Core.Indetifier.Pattern.Pattern' to add a

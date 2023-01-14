@@ -33,10 +33,20 @@ import Config (Patterns(..))
 -- or regex, as configured in "Config") and apply a set of rules (routing and
 -- compilation directives).
 siteRules :: Patterns -> Rules ()
-siteRules Patterns{..} = match indexPattern indexCompiler
+siteRules Patterns{..} = do
+  match cssPattern cssRules
+  match indexPattern indexRules
 
--- | The compiler for the root @index.html@ page.
-indexCompiler :: Rules ()
-indexCompiler = do
+-- | The rules to generate CSS files.
+--
+-- This just minimizes and copies the template CSS files.
+cssRules :: Rules ()
+cssRules = do
+  route idRoute
+  compile compressCssCompiler
+
+-- | The rules to build the root @index.html@ page.
+indexRules :: Rules ()
+indexRules = do
   route idRoute
   compile copyFileCompiler
