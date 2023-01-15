@@ -71,5 +71,4 @@ indexCompiler siteTitle defaultTemplate = do
   body <- getResourceBody
   loadAndApplyTemplate defaultTemplate indexContext body
   where
-    -- Add default title
     indexContext = constField "title" siteTitle <> defaultContext
