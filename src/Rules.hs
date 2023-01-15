@@ -81,7 +81,10 @@ postRules prefix compiler = do
   compile compiler
 
 -- | The compiler for posts.
---
--- Currently it's the same as "indexCompiler".
 postCompiler :: Identifier -> Identifier -> Compiler (Item String)
-postCompiler = indexCompiler
+postCompiler defaultTemplate postTemplate = pandocCompiler >>=
+  loadAndApplyTemplate postTemplate postContext >>=
+  loadAndApplyTemplate defaultTemplate defaultContext
+  where
+    -- add a readable date to context
+    postContext = dateField "fpublished" "%B %e, %Y" <> defaultContext
