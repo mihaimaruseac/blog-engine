@@ -37,7 +37,8 @@ siteRules SiteConfig{..} = do
   match cssPattern cssRules
   match fontPattern fontRules
   match templatesPattern templatesRules
-  match indexPattern $ indexRules (indexCompiler defaultTemplate indexTemplate)
+  match indexPattern $ indexRules $
+    indexCompiler defaultTemplate indexTemplate
   match postPattern $ postRules stripPostOnPublish $
     postCompiler defaultTemplate postTemplate
 
