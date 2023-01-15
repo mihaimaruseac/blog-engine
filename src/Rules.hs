@@ -86,5 +86,9 @@ postCompiler defaultTemplate postTemplate = pandocCompiler >>=
   loadAndApplyTemplate postTemplate postContext >>=
   loadAndApplyTemplate defaultTemplate defaultContext
   where
-    -- add a readable date to context
-    postContext = dateField "fpublished" "%B %e, %Y" <> defaultContext
+    postContext = mconcat
+      [ dateField "fpublished" "%B %e, %Y" -- readable published date
+      , modificationTimeField "changed" "%F" -- changed date
+      , modificationTimeField "fchanged" "%B %e, %Y" -- readable changed date
+      , defaultContext
+      ]
