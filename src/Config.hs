@@ -90,19 +90,12 @@ instance Yaml.FromJSON Config where
 --
 -- Note that it is better to push constants into the templates, this config
 -- should only contain those config strings which would result in template
--- duplication if we push them into the template. For example, the site title
--- for the root @index.html@ is a constant string in 'SiteConfig'
--- ('siteTitle') since otherwise we would need to have 2 templates: one with
--- @<title>${constant_string_here}</title>@ and one with interpolation
--- @<title>$title$</title>@. The first one would be used only for the root
--- index, making that page too special.
+-- duplication if we push them into the template.
 --
 -- This structure is passed directly to the rules generator
 -- ('Rules.siteRules').
 data SiteConfig = SiteConfig
-  { -- | Site name (title of root page)
-    siteTitle :: String
-  , -- | default html page template (root template)
+  { -- | default html page template (root template)
     defaultTemplate :: HK.Identifier
   , -- | pattern for @index.html@ at root of website (default: @index.html@)
     indexPattern :: HK.Pattern
@@ -116,8 +109,7 @@ data SiteConfig = SiteConfig
 
 instance Yaml.FromJSON SiteConfig where
   parseJSON = Yaml.withObject "SiteConfig" $ \v -> SiteConfig
-    <$> v .:? "siteTitle" .!= siteTitle defaultSiteConfig
-    <*> parseOrDefaultI v "default_template" defaultTemplate
+    <$> parseOrDefaultI v "default_template" defaultTemplate
     <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefaultP v "css" cssPattern
@@ -133,8 +125,7 @@ instance Yaml.FromJSON SiteConfig where
 -- If the configuration option is missing, use the default from here.
 defaultSiteConfig :: SiteConfig
 defaultSiteConfig = SiteConfig
-  { siteTitle = "Mihai's Page"
-  , defaultTemplate = "templates/default.html"
+  { defaultTemplate = "templates/default.html"
   , indexPattern = HK.fromGlob "index.md"
   , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = HK.fromGlob "css/*"
