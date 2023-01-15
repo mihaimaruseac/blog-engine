@@ -62,13 +62,13 @@ templatesRules = compile templateCompiler
 -- | The rules to build the root @index.html@ page.
 indexRules :: String -> Identifier -> Rules ()
 indexRules siteTitle defaultTemplate = do
-  route idRoute
+  route $ setExtension "html"
   compile $ indexCompiler siteTitle defaultTemplate
 
 -- | The compiler for index pages.
 indexCompiler :: String -> Identifier -> Compiler (Item String)
 indexCompiler siteTitle defaultTemplate = do
-  body <- getResourceBody
+  body <- pandocCompiler
   loadAndApplyTemplate defaultTemplate indexContext body
   where
     indexContext = constField "title" siteTitle <> defaultContext
