@@ -38,6 +38,8 @@ siteRules SiteConfig{..} = do
   match fontPattern fontRules
   match templatesPattern templatesRules
   match indexPattern $ indexRules (indexCompiler defaultTemplate indexTemplate)
+  match postPattern $ postRules stripPostOnPublish $
+    postCompiler defaultTemplate postTemplate
 
 -- | The rules to generate CSS files.
 --
@@ -70,3 +72,15 @@ indexCompiler :: Identifier -> Identifier -> Compiler (Item String)
 indexCompiler defaultTemplate indexTemplate = pandocCompiler >>=
   loadAndApplyTemplate indexTemplate defaultContext >>=
   loadAndApplyTemplate defaultTemplate defaultContext
+
+-- | The rules to build the pages for each post.
+postRules :: String -> Compiler (Item String) -> Rules ()
+postRules prefix compiler = do
+  route $ gsubRoute prefix (const "") `composeRoutes` setExtension "html"
+  compile compiler
+
+-- | The compiler for posts.
+--
+-- Currently it's the same as "indexCompiler".
+postCompiler :: Identifier -> Identifier -> Compiler (Item String)
+postCompiler = indexCompiler
