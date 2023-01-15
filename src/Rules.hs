@@ -69,4 +69,9 @@ indexRules defaultTemplate = do
 indexCompiler :: Identifier -> Compiler (Item String)
 indexCompiler defaultTemplate = do
   body <- getResourceBody
-  loadAndApplyTemplate defaultTemplate defaultContext body
+  loadAndApplyTemplate defaultTemplate indexContext body
+  where
+    -- Add default title
+    indexContext = constField "title" title <> defaultContext
+    -- TODO(mihaimaruseac): Pass to config
+    title = "Mihai's Page"
