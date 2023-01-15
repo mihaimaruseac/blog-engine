@@ -95,9 +95,11 @@ instance Yaml.FromJSON Config where
 -- This structure is passed directly to the rules generator
 -- ('Rules.siteRules').
 data SiteConfig = SiteConfig
-  { -- | default html page template (root template)
+  { -- | default html page template
     defaultTemplate :: HK.Identifier
-  , -- | pattern for @index.html@ at root of website (default: @index.html@)
+  , -- | page template for index pages (e.g. root @index.html@)
+    indexTemplate :: HK.Identifier
+  , -- | pattern for @index.html@ at root of website
     indexPattern :: HK.Pattern
   , -- | pattern for templates
     templatesPattern :: HK.Pattern
@@ -110,6 +112,7 @@ data SiteConfig = SiteConfig
 instance Yaml.FromJSON SiteConfig where
   parseJSON = Yaml.withObject "SiteConfig" $ \v -> SiteConfig
     <$> parseOrDefaultI v "default_template" defaultTemplate
+    <*> parseOrDefaultI v "index_template" indexTemplate
     <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefaultP v "css" cssPattern
@@ -126,6 +129,7 @@ instance Yaml.FromJSON SiteConfig where
 defaultSiteConfig :: SiteConfig
 defaultSiteConfig = SiteConfig
   { defaultTemplate = "templates/default.html"
+  , indexTemplate = "templates/index.html"
   , indexPattern = HK.fromGlob "index.md"
   , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = HK.fromGlob "css/*"

@@ -37,7 +37,7 @@ siteRules SiteConfig{..} = do
   match cssPattern cssRules
   match fontPattern fontRules
   match templatesPattern templatesRules
-  match indexPattern (indexRules defaultTemplate)
+  match indexPattern $ indexRules (indexCompiler defaultTemplate indexTemplate)
 
 -- | The rules to generate CSS files.
 --
@@ -60,13 +60,13 @@ templatesRules :: Rules ()
 templatesRules = compile templateCompiler
 
 -- | The rules to build the root @index.html@ page.
-indexRules :: Identifier -> Rules ()
-indexRules defaultTemplate = do
+indexRules :: Compiler (Item String) -> Rules ()
+indexRules compiler = do
   route $ setExtension "html"
-  compile $ indexCompiler defaultTemplate
+  compile compiler
 
 -- | The compiler for index pages.
-indexCompiler :: Identifier -> Compiler (Item String)
-indexCompiler defaultTemplate = do
-  body <- pandocCompiler
-  loadAndApplyTemplate defaultTemplate defaultContext body
+indexCompiler :: Identifier -> Identifier -> Compiler (Item String)
+indexCompiler defaultTemplate indexTemplate = pandocCompiler >>=
+  loadAndApplyTemplate indexTemplate defaultContext >>=
+  loadAndApplyTemplate defaultTemplate defaultContext
