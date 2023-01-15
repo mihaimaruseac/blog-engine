@@ -97,10 +97,14 @@ instance Yaml.FromJSON Config where
 data SiteConfig = SiteConfig
   { -- | default html page template
     defaultTemplate :: HK.Identifier
-  , -- | page template for index pages (e.g. root @index.html@)
+  , -- | template for index pages (e.g. root @index.html@)
     indexTemplate :: HK.Identifier
+  , -- | template for post pages
+    postTemplate :: HK.Identifier
   , -- | pattern for @index.html@ at root of website
     indexPattern :: HK.Pattern
+  , -- | pattern for posts
+    postPattern :: HK.Pattern
   , -- | pattern for templates
     templatesPattern :: HK.Pattern
   , -- | pattern for CSS files
@@ -113,7 +117,9 @@ instance Yaml.FromJSON SiteConfig where
   parseJSON = Yaml.withObject "SiteConfig" $ \v -> SiteConfig
     <$> parseOrDefaultI v "default_template" defaultTemplate
     <*> parseOrDefaultI v "index_template" indexTemplate
+    <*> parseOrDefaultI v "post_template" postTemplate
     <*> parseOrDefaultP v "index" indexPattern
+    <*> parseOrDefaultP v "post" postPattern
     <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefaultP v "css" cssPattern
     <*> parseOrDefaultP v "fonts" fontPattern
@@ -130,7 +136,9 @@ defaultSiteConfig :: SiteConfig
 defaultSiteConfig = SiteConfig
   { defaultTemplate = "templates/default.html"
   , indexTemplate = "templates/index.html"
+  , postTemplate = "templates/post.html"
   , indexPattern = HK.fromGlob "index.md"
+  , postPattern = HK.fromRegex "posts/.*/.*"
   , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = HK.fromGlob "css/*"
   , fontPattern = HK.fromGlob "fonts/*"
