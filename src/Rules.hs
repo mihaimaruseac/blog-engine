@@ -25,19 +25,19 @@ module Rules
 
 import Hakyll
 
-import Config (Patterns(..))
+import Config (SiteConfig(..))
 
 -- | The rules to generate the site.
 --
 -- In general, the pattern of these rules is to match on a file pattern (glob
 -- or regex, as configured in "Config") and apply a set of rules (routing and
 -- compilation directives).
-siteRules :: Patterns -> Rules ()
-siteRules Patterns{..} = do
+siteRules :: SiteConfig -> Rules ()
+siteRules SiteConfig{..} = do
   match cssPattern cssRules
   match fontPattern fontRules
   match templatesPattern templatesRules
-  match indexPattern (indexRules defaultTemplate)
+  match indexPattern (indexRules siteTitle defaultTemplate)
 
 -- | The rules to generate CSS files.
 --
@@ -60,18 +60,16 @@ templatesRules :: Rules ()
 templatesRules = compile templateCompiler
 
 -- | The rules to build the root @index.html@ page.
-indexRules :: Identifier -> Rules ()
-indexRules defaultTemplate = do
+indexRules :: String -> Identifier -> Rules ()
+indexRules siteTitle defaultTemplate = do
   route idRoute
-  compile $ indexCompiler defaultTemplate
+  compile $ indexCompiler siteTitle defaultTemplate
 
 -- | The compiler for index pages.
-indexCompiler :: Identifier -> Compiler (Item String)
-indexCompiler defaultTemplate = do
+indexCompiler :: String -> Identifier -> Compiler (Item String)
+indexCompiler siteTitle defaultTemplate = do
   body <- getResourceBody
   loadAndApplyTemplate defaultTemplate indexContext body
   where
     -- Add default title
-    indexContext = constField "title" title <> defaultContext
-    -- TODO(mihaimaruseac): Pass to config
-    title = "Mihai's Page"
+    indexContext = constField "title" siteTitle <> defaultContext

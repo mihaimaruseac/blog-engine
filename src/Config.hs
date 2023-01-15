@@ -25,8 +25,8 @@ module Config
     parseConfig
     -- * Configuration structure
   , Config(..)
-    -- * Patterns for configuring the generator
-  , Patterns(..)
+    -- * Site local configuration (patterns, constant strings, etc.)
+  , SiteConfig(..)
   ) where
 
 import Control.Applicative ((<|>))
@@ -58,9 +58,16 @@ data Config = Config
     host :: Maybe String
   , -- | Default port for the @watch --port=PORT@ option
     port :: Maybe Int
-  , -- | Patterns for the paths used by the generator. See
-    -- 'Patterns' and "Rules" module.
-    patterns :: Patterns
+  , -- | Site configuration, parameterizing the generator.
+    --
+    -- This contains patterns to various rules and files as well as global
+    -- constant strings. This makes it easy to alter the site configuration
+    -- (e.g., change title, change posts location) without needing to
+    -- recompile the generator.
+    --
+    -- See 'SiteConfig' and "Rules" module. Default values are given by
+    -- 'defaultSiteConfig'.
+    siteConfig :: SiteConfig
   } deriving (Show)
 
 instance Yaml.FromJSON Config where
@@ -68,18 +75,34 @@ instance Yaml.FromJSON Config where
     <$> v .: "contentPath"
     <*> v .:? "host"
     <*> v .:? "port"
-    <*> v .:? "patterns" .!= defaultPatterns
+    <*> v .:? "config" .!= defaultSiteConfig
 
--- | The configuration of the patterns used by the generator.
+-- | The configuration of the generator.
 --
 -- This allows customizing the paths used in the generator to match in rules.
 -- For example, the config file could specify a different path for the main
 -- index file, or for the posts.
 --
+-- Similarly, we can use this to change site default title and other constant
+-- strings that might not be specified in the templates. This way, we can
+-- change them and rebuild the site without needing to recompile the
+-- generator.
+--
+-- Note that it is better to push constants into the templates, this config
+-- should only contain those config strings which would result in template
+-- duplication if we push them into the template. For example, the site title
+-- for the root @index.html@ is a constant string in 'SiteConfig'
+-- ('siteTitle') since otherwise we would need to have 2 templates: one with
+-- @<title>${constant_string_here}</title>@ and one with interpolation
+-- @<title>$title$</title>@. The first one would be used only for the root
+-- index, making that page too special.
+--
 -- This structure is passed directly to the rules generator
 -- ('Rules.siteRules').
-data Patterns = Patterns
-  { -- | default html page template (root template)
+data SiteConfig = SiteConfig
+  { -- | Site name (title of root page)
+    siteTitle :: String
+  , -- | default html page template (root template)
     defaultTemplate :: HK.Identifier
   , -- | pattern for @index.html@ at root of website (default: @index.html@)
     indexPattern :: HK.Pattern
@@ -91,27 +114,28 @@ data Patterns = Patterns
     fontPattern :: HK.Pattern
   } deriving (Show)
 
-instance Yaml.FromJSON Patterns where
-  parseJSON = Yaml.withObject "Patterns" $ \v -> Patterns
-    <$> parseOrDefaultI v "default_template" defaultTemplate
+instance Yaml.FromJSON SiteConfig where
+  parseJSON = Yaml.withObject "SiteConfig" $ \v -> SiteConfig
+    <$> v .:? "siteTitle" .!= siteTitle defaultSiteConfig
+    <*> parseOrDefaultI v "default_template" defaultTemplate
     <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefaultP v "css" cssPattern
     <*> parseOrDefaultP v "fonts" fontPattern
     where
-      parseOrDefaultI v key def = toHKI (v .:? key) .!= def defaultPatterns
-      parseOrDefaultP v key def = toHKP (v .:? key) .!= def defaultPatterns
+      parseOrDefaultI v key def = toHKI (v .:? key) .!= def defaultSiteConfig
+      parseOrDefaultP v key def = toHKP (v .:? key) .!= def defaultSiteConfig
       toHKP = fmap $ fmap unwrapP
       toHKI = fmap $ fmap unwrapI
 
--- | Default patterns.
+-- | Default site configuration.
 --
--- If the config file doesn't specify any pattern or some of these are
--- missing, we will fill the missing ones with the values from this.
-defaultPatterns :: Patterns
-defaultPatterns = Patterns
-  { defaultTemplate = "templates/default.html"
-  , indexPattern = HK.fromGlob "index.html"
+-- If the configuration option is missing, use the default from here.
+defaultSiteConfig :: SiteConfig
+defaultSiteConfig = SiteConfig
+  { siteTitle = "Mihai's Page"
+  , defaultTemplate = "templates/default.html"
+  , indexPattern = HK.fromGlob "index.md"
   , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = HK.fromGlob "css/*"
   , fontPattern = HK.fromGlob "fonts/*"
