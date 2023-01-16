@@ -23,7 +23,9 @@ module Rules
     siteRules
   ) where
 
+import Control.Applicative (empty, (<|>))
 import Hakyll
+import System.FilePath
 
 import Config (SiteConfig(..))
 
@@ -41,6 +43,7 @@ siteRules SiteConfig{..} = do
     indexCompiler defaultTemplate indexTemplate
   match postPattern $ postRules stripPostOnPublish $
     postCompiler defaultTemplate postTemplate
+  match commentPattern $ compile commentCompiler
 
 -- | The rules to generate CSS files.
 --
@@ -91,5 +94,19 @@ postCompiler defaultTemplate postTemplate = pandocCompiler >>=
       [ dateField "fpublished" "%B %e, %Y" -- readable published date
       , modificationTimeField "changed" "%F" -- changed date
       , modificationTimeField "fchanged" "%B %e, %Y" -- readable changed date
+      , field "comments" postCommentsCompiler
       , defaultContext
       ]
+
+-- | The compiler for comment snippets.
+commentCompiler :: Compiler (Item String)
+commentCompiler = pandocCompiler
+
+-- | The compiler to generate comments for the current 'Item'
+postCommentsCompiler :: Show a => Item a -> Compiler String
+postCommentsCompiler item =
+  (load (fromFilePath commentsFile) >>= renderPandoc >>= (return . itemBody))
+  <|> empty
+  where
+    itemLocation = toFilePath . itemIdentifier $ item
+    commentsFile = replaceBaseName itemLocation "comments"

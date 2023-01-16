@@ -105,6 +105,8 @@ data SiteConfig = SiteConfig
     indexPattern :: HK.Pattern
   , -- | pattern for posts
     postPattern :: HK.Pattern
+  , -- | pattern for comments
+    commentPattern :: HK.Pattern
   , -- | strip prefix from 'postPattern' on publishing
     -- e.g., if 'postPattern' is @posts/*.md@ and 'stripPostOnPublish' is
     -- @posts/@, the resulting posts will be in the root of the site. If
@@ -126,6 +128,7 @@ instance Yaml.FromJSON SiteConfig where
     <*> parseOrDefaultI v "post_template" postTemplate
     <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "post" postPattern
+    <*> parseOrDefaultP v "comment" commentPattern
     <*> v .:? "post_prefix" .!= stripPostOnPublish defaultSiteConfig
     <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefaultP v "css" cssPattern
@@ -146,6 +149,7 @@ defaultSiteConfig = SiteConfig
   , postTemplate = "templates/post.html"
   , indexPattern = HK.fromGlob "index.md"
   , postPattern = HK.fromRegex "posts/.*/index.md"
+  , commentPattern = HK.fromRegex "posts/.*/comments.md"
   , stripPostOnPublish = "posts/"
   , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = HK.fromGlob "css/*"
