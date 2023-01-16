@@ -23,7 +23,6 @@ module Rules
     siteRules
   ) where
 
-import Control.Applicative (empty, (<|>))
 import Hakyll
 import System.FilePath
 
@@ -100,13 +99,12 @@ postCompiler defaultTemplate postTemplate = pandocCompiler >>=
 
 -- | The compiler for comment snippets.
 commentCompiler :: Compiler (Item String)
-commentCompiler = pandocCompiler
+commentCompiler = pandocCompiler >>= saveSnapshot "comments"
 
 -- | The compiler to generate comments for the current 'Item'
 postCommentsCompiler :: Show a => Item a -> Compiler String
-postCommentsCompiler item =
-  (load (fromFilePath commentsFile) >>= renderPandoc >>= (return . itemBody))
-  <|> empty
+postCommentsCompiler item = itemBody <$> loadSnapshot cid "comments"
   where
     itemLocation = toFilePath . itemIdentifier $ item
-    commentsFile = replaceBaseName itemLocation "comments"
+    commentsFile = replaceBaseName itemLocation "comments" -- TODO: not ok
+    cid = fromFilePath commentsFile
