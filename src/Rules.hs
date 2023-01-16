@@ -83,6 +83,7 @@ postRules prefix compiler = do
 -- | The compiler for posts.
 postCompiler :: Identifier -> Identifier -> Compiler (Item String)
 postCompiler defaultTemplate postTemplate = pandocCompiler >>=
+  return . fmap (demoteHeadersBy 3) >>=
   loadAndApplyTemplate postTemplate postContext >>=
   loadAndApplyTemplate defaultTemplate defaultContext
   where
