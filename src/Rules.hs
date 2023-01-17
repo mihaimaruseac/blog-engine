@@ -23,8 +23,10 @@ module Rules
     siteRules
   ) where
 
+import Data.List (sortOn)
 import Hakyll
 import System.FilePath
+import Text.Printf
 
 import Config (SiteConfig(..))
 
@@ -83,28 +85,51 @@ postRules prefix compiler = do
   compile compiler
 
 -- | The compiler for posts.
+--
+-- Includes rules for comments, etc.
 postCompiler :: Identifier -> Identifier -> Compiler (Item String)
-postCompiler defaultTemplate postTemplate = pandocCompiler >>=
-  return . fmap (demoteHeadersBy 3) >>=
-  loadAndApplyTemplate postTemplate postContext >>=
-  loadAndApplyTemplate defaultTemplate defaultContext
+postCompiler defaultTemplate postTemplate = do
+  -- first, extract comments, generate the proper context
+  current <- dropFileName . toFilePath <$> getUnderlying
+  let pattern = fromGlob $ current </> "comment-*.md"
+  comments <- loadAll pattern >>= sortById
+  let commentContext = mconcat
+        [ constField "numComments" $ printf "%d" $ length comments
+        , listField "comments" localCommentContext (return comments)
+        , defaultContext
+        ]
+  -- now, compile the post, insert the proper snapshots and contexts
+  pandocCompiler >>=
+    return . fmap (demoteHeadersBy 3) >>=
+    loadAndApplyTemplate postTemplate postContext >>=
+    -- TODO: save snapshot for RSS
+    loadAndApplyTemplate "templates/post-and-comments.html" commentContext >>=
+    loadAndApplyTemplate defaultTemplate defaultContext
   where
+    -- time formats
+    readableFormat = "%B %e, %Y"
+    machineFormat = "%F"
+    -- contexts
+    fpublishedContext = dateField "fpublished" readableFormat
+    localCommentContext = fpublishedContext <> defaultContext
     postContext = mconcat
-      [ dateField "fpublished" "%B %e, %Y" -- readable published date
-      , modificationTimeField "changed" "%F" -- changed date
-      , modificationTimeField "fchanged" "%B %e, %Y" -- readable changed date
-      , field "comments" postCommentsCompiler
+      [ fpublishedContext
+      , modificationTimeField "changed" machineFormat
+      , modificationTimeField "fchanged" readableFormat
       , defaultContext
       ]
 
 -- | The compiler for comment snippets.
 commentCompiler :: Compiler (Item String)
-commentCompiler = pandocCompiler >>= saveSnapshot "comments"
+commentCompiler = pandocCompiler
 
--- | The compiler to generate comments for the current 'Item'
-postCommentsCompiler :: Show a => Item a -> Compiler String
-postCommentsCompiler item = loadSnapshotBody cid "comments"
+sortById :: [Item a] -> Compiler [Item a]
+sortById items = mapM getId items >>= return . map snd . sortOn fst
   where
-    itemLocation = toFilePath . itemIdentifier $ item
-    commentsFile = replaceBaseName itemLocation "comments" -- TODO: not ok
-    cid = fromFilePath commentsFile
+    getId :: Item a -> Compiler (Int, Item a)
+    getId i = do
+      let iid = itemIdentifier i
+      parsed <- fmap reads <$> getMetadataField iid "id"
+      case parsed of
+        Just [(i', "")] -> return (i', i)
+        _ ->  error $ printf "Failed to get id from %s" $ show iid
