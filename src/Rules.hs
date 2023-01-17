@@ -103,7 +103,7 @@ commentCompiler = pandocCompiler >>= saveSnapshot "comments"
 
 -- | The compiler to generate comments for the current 'Item'
 postCommentsCompiler :: Show a => Item a -> Compiler String
-postCommentsCompiler item = itemBody <$> loadSnapshot cid "comments"
+postCommentsCompiler item = loadSnapshotBody cid "comments"
   where
     itemLocation = toFilePath . itemIdentifier $ item
     commentsFile = replaceBaseName itemLocation "comments" -- TODO: not ok
