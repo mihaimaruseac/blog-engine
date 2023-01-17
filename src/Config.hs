@@ -107,12 +107,17 @@ data SiteConfig = SiteConfig
     postPattern :: HK.Pattern
   , -- | pattern for comments
     commentPattern :: HK.Pattern
+  , -- | local part of comment pattern
+    -- Since we need to load comments from post directory, we need to
+    -- customize this option. There is a way to automatically determine this
+    -- but we can leave it for later.
+    localCommentPattern :: String
   , -- | strip prefix from 'postPattern' on publishing
     -- e.g., if 'postPattern' is @posts/*.md@ and 'stripPostOnPublish' is
     -- @posts/@, the resulting posts will be in the root of the site. If
     -- 'stripPostOnPublish' is @pos@ (partial match), the results will be
     -- in @ts/*@. If prefix doesn't match, no replacement is being done
-    stripPostOnPublish :: String
+    stripOnPublish :: String
   , -- | pattern for templates
     templatesPattern :: HK.Pattern
   , -- | pattern for CSS files
@@ -129,7 +134,8 @@ instance Yaml.FromJSON SiteConfig where
     <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "post" postPattern
     <*> parseOrDefaultP v "comment" commentPattern
-    <*> v .:? "post_prefix" .!= stripPostOnPublish defaultSiteConfig
+    <*> v .:? "local_comment" .!= localCommentPattern defaultSiteConfig
+    <*> v .:? "post_prefix" .!= stripOnPublish defaultSiteConfig
     <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefaultP v "css" cssPattern
     <*> parseOrDefaultP v "fonts" fontPattern
@@ -150,7 +156,8 @@ defaultSiteConfig = SiteConfig
   , indexPattern = HK.fromGlob "index.md"
   , postPattern = HK.fromGlob "posts/*/index.md"
   , commentPattern = HK.fromGlob "posts/*/comment-*.md"
-  , stripPostOnPublish = "posts/"
+  , localCommentPattern = "comment-*.md"
+  , stripOnPublish = "posts/"
   , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = HK.fromGlob "css/*"
   , fontPattern = HK.fromGlob "fonts/*"

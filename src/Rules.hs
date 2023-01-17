@@ -42,8 +42,8 @@ siteRules SiteConfig{..} = do
   match templatesPattern templatesRules
   match indexPattern $ indexRules $
     indexCompiler defaultTemplate indexTemplate
-  match postPattern $ postRules stripPostOnPublish $
-    postCompiler defaultTemplate postTemplate
+  match postPattern $ postRules stripOnPublish $
+    postCompiler defaultTemplate postTemplate localCommentPattern
   match commentPattern $ compile commentCompiler
 
 -- | The rules to generate CSS files.
@@ -87,11 +87,11 @@ postRules prefix compiler = do
 -- | The compiler for posts.
 --
 -- Includes rules for comments, etc.
-postCompiler :: Identifier -> Identifier -> Compiler (Item String)
-postCompiler defaultTemplate postTemplate = do
+postCompiler :: Identifier -> Identifier -> String -> Compiler (Item String)
+postCompiler defaultTemplate postTemplate localCommentPattern = do
   -- first, extract comments, generate the proper context
   current <- dropFileName . toFilePath <$> getUnderlying
-  let pattern = fromGlob $ current </> "comment-*.md"
+  let pattern = fromGlob $ current </> localCommentPattern
   comments <- loadAll pattern >>= sortById
   let commentContext = mconcat
         [ constField "numComments" $ printf "%d" $ length comments
