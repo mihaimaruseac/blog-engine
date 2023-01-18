@@ -123,6 +123,8 @@ postCompiler defaultTemplate postTemplate localCommentPattern = do
 commentCompiler :: Compiler (Item String)
 commentCompiler = pandocCompiler
 
+-- | Sort a set of 'Hakyll.Item's by their @id@ (assumes each contains an @id@
+-- field in their corresponding @Hakyll.Metadata@.
 sortById :: [Item a] -> Compiler [Item a]
 sortById items = mapM getId items >>= return . map snd . sortOn fst
   where
