@@ -100,7 +100,7 @@ postCompiler defaultTemplate postTemplate localCommentPattern = do
         ]
   -- now, compile the post, insert the proper snapshots and contexts
   pandocCompiler >>=
-    return . fmap (demoteHeadersBy 3) >>=
+    return . fmap (demoteHeadersBy 2) >>=
     loadAndApplyTemplate postTemplate postContext >>=
     -- TODO: save snapshot for RSS
     loadAndApplyTemplate "templates/post-and-comments.html" commentContext >>=
