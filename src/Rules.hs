@@ -28,6 +28,7 @@ import Hakyll
 import System.FilePath
 import Text.Printf
 
+import Compiler (blogCompiler)
 import Config (SiteConfig(..))
 
 -- | The rules to generate the site.
@@ -74,7 +75,7 @@ indexRules compiler = do
 
 -- | The compiler for index pages.
 indexCompiler :: Identifier -> Identifier -> Compiler (Item String)
-indexCompiler defaultTemplate indexTemplate = pandocCompiler >>=
+indexCompiler defaultTemplate indexTemplate = blogCompiler >>=
   loadAndApplyTemplate indexTemplate defaultContext >>=
   loadAndApplyTemplate defaultTemplate defaultContext
 
@@ -99,7 +100,7 @@ postCompiler defaultTemplate postTemplate localCommentPattern = do
         , defaultContext
         ]
   -- now, compile the post, insert the proper snapshots and contexts
-  pandocCompiler >>=
+  blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
     loadAndApplyTemplate postTemplate postContext >>=
     -- TODO: save snapshot for RSS
@@ -121,7 +122,7 @@ postCompiler defaultTemplate postTemplate localCommentPattern = do
 
 -- | The compiler for comment snippets.
 commentCompiler :: Compiler (Item String)
-commentCompiler = pandocCompiler
+commentCompiler = blogCompiler
 
 -- | Sort a set of 'Hakyll.Item's by their @id@ (assumes each contains an @id@
 -- field in their corresponding @Hakyll.Metadata@.
