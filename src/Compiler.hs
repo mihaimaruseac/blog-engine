@@ -36,3 +36,5 @@ readOptions = defaultHakyllReaderOptions
 -- | Write options for 'blogCompiler'
 writeOptions :: WriterOptions
 writeOptions = defaultHakyllWriterOptions
+  { writerHTMLMathMethod = MathML
+  }
