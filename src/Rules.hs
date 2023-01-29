@@ -93,7 +93,7 @@ postCompiler SiteConfig{..} = do
   let meta = lookupStringList "references" metadata
   traceM $ printf "%s - %s" (show metadata) (show meta)
   let refContext = case meta of
-        Just l -> listField "references" (field "reference" (return .  itemBody)) (return $ map (Item underlying) l)
+        Just l -> listField "references" (field "reference" (return . itemBody)) (sequence $ map makeItem l)
         Nothing -> mempty
   -- 1. Extract comments (if any) to generate the proper context
   commentContext <- processComments localCommentPattern
