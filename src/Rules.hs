@@ -37,12 +37,11 @@ import Config (SiteConfig(..))
 -- or regex, as configured in "Config") and apply a set of rules (routing and
 -- compilation directives).
 siteRules :: SiteConfig -> Rules ()
-siteRules SiteConfig{..} = do
+siteRules sc@SiteConfig{..} = do
   match cssPattern cssRules
   match fontPattern fontRules
   match templatesPattern templatesRules
-  match indexPattern $ indexRules $
-    indexCompiler defaultTemplate indexTemplate
+  match indexPattern $ indexRules $ indexCompiler sc
   match postPattern $ postRules stripOnPublish $
     postCompiler defaultTemplate postTemplate localCommentPattern
   match commentPattern $ compile commentCompiler
@@ -74,8 +73,8 @@ indexRules compiler = do
   compile compiler
 
 -- | The compiler for index pages.
-indexCompiler :: Identifier -> Identifier -> Compiler (Item String)
-indexCompiler defaultTemplate indexTemplate = blogCompiler >>=
+indexCompiler :: SiteConfig -> Compiler (Item String)
+indexCompiler SiteConfig{..} = blogCompiler >>=
   loadAndApplyTemplate indexTemplate defaultContext >>=
   loadAndApplyTemplate defaultTemplate defaultContext
 
