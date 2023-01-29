@@ -43,7 +43,7 @@ siteRules sc@SiteConfig{..} = do
   match indexPattern $ indexRules $ indexCompiler sc
   match postPattern $ postRules stripOnPublish $ postCompiler sc
   -- These items don't have a file for their own in output
-  match templatesPattern templatesRules
+  match templatesPattern $ compile templateCompiler
   match commentPattern $ compile commentCompiler
 
 -- | The rules to generate CSS files.
@@ -61,10 +61,6 @@ fontRules :: Rules ()
 fontRules = do
   route idRoute
   compile copyFileCompiler
-
--- | The rules to compile the templates.
-templatesRules :: Rules ()
-templatesRules = compile templateCompiler
 
 -- | The rules to build the root @index.html@ page.
 indexRules :: Compiler (Item String) -> Rules ()
