@@ -44,6 +44,7 @@ siteRules sc@SiteConfig{..} = do
   match indexPattern $ indexRules $ indexCompiler sc
   match postPattern $ postRules stripOnPublish $
     postCompiler defaultTemplate postTemplate localCommentPattern
+  -- These items don't have a file for their own in output
   match commentPattern $ compile commentCompiler
 
 -- | The rules to generate CSS files.
