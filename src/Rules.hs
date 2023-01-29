@@ -45,6 +45,8 @@ siteRules sc@SiteConfig{..} = do
   -- These items don't have a file for their own in output
   match templatesPattern $ compile templateCompiler
   match commentPattern $ compile commentCompiler
+  match "posts/*/*.csl" $ compile cslCompiler
+  match "posts/*/*.bib" $ compile biblioCompiler
 
 -- | The rules to generate CSS files.
 --
@@ -85,7 +87,7 @@ postRules prefix compiler = do
 -- Includes rules for comments, etc.
 postCompiler :: SiteConfig -> Compiler (Item String)
 postCompiler SiteConfig{..} = do
-  -- first, extract comments, generate the proper context
+  -- 1. Extract comments (if any) to generate the proper context
   current <- dropFileName . toFilePath <$> getUnderlying
   let pattern = fromGlob $ current </> localCommentPattern
   comments <- loadAll pattern >>= sortById
@@ -94,7 +96,7 @@ postCompiler SiteConfig{..} = do
         , listField "comments" localCommentContext (return comments)
         , defaultContext
         ]
-  -- now, compile the post, insert the proper snapshots and contexts
+  -- 2. Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
     loadAndApplyTemplate postTemplate postContext >>=

@@ -21,21 +21,37 @@ module Compiler
     blogCompiler
   ) where
 
+import Data.Maybe (fromMaybe)
 import Hakyll
 import Text.Pandoc
 
--- | The custom compiler
+-- | The custom compiler.
 --
 -- Configurations:
+--   * Handle citations by reading bibtex and cls files from metadata
 --   * Enable MathJax for writing math code
 blogCompiler :: Compiler (Item String)
-blogCompiler = pandocCompilerWith readOptions writeOptions
+blogCompiler = do
+  -- 1. Handle bibliography: extract items from metadata
+  underlying <- getUnderlying
+  bibFile <- fmap fromFilePath <$> getMetadataField underlying "bibfile"
+  cslFile <- fmap fromFilePath <$> getMetadataField underlying "cslfile"
+  -- 2. Determine pandoc reader: we use a different one for bibliographies
+  reader <- case bibFile of
+    Nothing -> return $ readPandocWith readOptions
+    Just bib -> do
+      bibItem <- load bib
+      cslItem <- load $ fromMaybe "default.csl" cslFile
+      return $ readPandocBiblio readOptions cslItem bibItem
+  -- 3. Now compile everything
+  cached "blogCompiler" $ fmap (writePandocWith writeOptions) $
+    getResourceBody >>= reader
 
--- | Read options for 'blogCompiler'
+-- | Read options for 'blogCompiler'.
 readOptions :: ReaderOptions
 readOptions = defaultHakyllReaderOptions
 
--- | Write options for 'blogCompiler'
+-- | Write options for 'blogCompiler'.
 writeOptions :: WriterOptions
 writeOptions = defaultHakyllWriterOptions
   { writerHTMLMathMethod = MathJax ""
