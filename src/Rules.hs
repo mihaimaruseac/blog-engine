@@ -41,8 +41,7 @@ siteRules sc@SiteConfig{..} = do
   match cssPattern cssRules
   match fontPattern fontRules
   match indexPattern $ indexRules $ indexCompiler sc
-  match postPattern $ postRules stripOnPublish $
-    postCompiler defaultTemplate postTemplate localCommentPattern
+  match postPattern $ postRules stripOnPublish $ postCompiler sc
   -- These items don't have a file for their own in output
   match templatesPattern templatesRules
   match commentPattern $ compile commentCompiler
@@ -88,8 +87,8 @@ postRules prefix compiler = do
 -- | The compiler for posts.
 --
 -- Includes rules for comments, etc.
-postCompiler :: Identifier -> Identifier -> String -> Compiler (Item String)
-postCompiler defaultTemplate postTemplate localCommentPattern = do
+postCompiler :: SiteConfig -> Compiler (Item String)
+postCompiler SiteConfig{..} = do
   -- first, extract comments, generate the proper context
   current <- dropFileName . toFilePath <$> getUnderlying
   let pattern = fromGlob $ current </> localCommentPattern
