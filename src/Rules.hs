@@ -45,6 +45,8 @@ siteRules sc@SiteConfig{..} = do
   -- These items don't have a file for their own in output
   match templatesPattern $ compile templateCompiler
   match commentPattern $ compile commentCompiler
+  match "posts/*/*.csl" $ compile cslCompiler
+  match "posts/*/*.bib" $ compile biblioCompiler
 
 -- | The rules to generate CSS files.
 --
