@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-|
 Module: Compiler
 Description: Custom pandoc compiler
@@ -36,5 +38,5 @@ readOptions = defaultHakyllReaderOptions
 -- | Write options for 'blogCompiler'
 writeOptions :: WriterOptions
 writeOptions = defaultHakyllWriterOptions
-  { writerHTMLMathMethod = MathML
+  { writerHTMLMathMethod = MathJax ""
   }
