@@ -87,36 +87,29 @@ postRules prefix compiler = do
 -- Includes rules for comments, etc.
 postCompiler :: SiteConfig -> Compiler (Item String)
 postCompiler SiteConfig{..} = do
-  -- Testing
-  underlying <- getUnderlying
-  metadata <- getMetadata underlying
-  let meta = lookupStringList "references" metadata
-  traceM $ printf "%s - %s" (show metadata) (show meta)
-  let refContext = case meta of
-        Just l -> listField "references" (field "reference" (return . itemBody)) (sequence $ map makeItem l)
-        Nothing -> mempty
-  -- 1. Extract comments (if any) to generate the proper context
+  -- Extract comments and references (if any) to generate the proper contexts
   commentContext <- processComments localCommentPattern
-  -- 2. Compile the post, insert the proper snapshots and contexts
-  let postContext = mconcat
-        [ formattedPublishedDateContext
-        , modificationTimeField "changed" machineTimeFormat
-        , modificationTimeField "fchanged" readableTimeFormat
-        , refContext
-        , defaultContext
-        ]
+  referencesContext <- processReferences
+  -- Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
-    loadAndApplyTemplate postTemplate postContext >>=
+    loadAndApplyTemplate postTemplate (referencesContext <> postContext) >>=
     -- TODO: save snapshot for RSS
     loadAndApplyTemplate commentTemplate commentContext >>=
     loadAndApplyTemplate defaultTemplate defaultContext
+  where
+    postContext = mconcat
+      [ formattedPublishedDateContext
+      , modificationTimeField "changed" machineTimeFormat
+      , modificationTimeField "fchanged" readableTimeFormat
+      , defaultContext
+      ]
 
 -- | The compiler for comment snippets.
 commentCompiler :: Compiler (Item String)
 commentCompiler = blogCompiler
 
--- | Process te comments for a post.
+-- | Processes the comments for a post.
 processComments :: String -> Compiler (Context String)
 processComments commentPattern = do
   current <- dropFileName . toFilePath <$> getUnderlying
@@ -128,6 +121,16 @@ processComments commentPattern = do
     ]
   where
     localCommentContext = formattedPublishedDateContext <> defaultContext
+
+-- | Processes the references for a post.
+processReferences :: Compiler (Context a)
+processReferences = do
+  metadata <- getUnderlying >>= getMetadata
+  let meta = lookupStringList "references" metadata
+  traceM $ printf "%s - %s" (show metadata) (show meta)
+  return $ case meta of
+    Just l -> listField "references" (field "reference" (return . itemBody)) (sequence $ map makeItem l)
+    Nothing -> mempty
 
 -- | Sort a set of 'Hakyll.Item's by their @id@ (assumes each contains an @id@
 -- field in their corresponding @Hakyll.Metadata@.
