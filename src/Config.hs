@@ -101,6 +101,8 @@ data SiteConfig = SiteConfig
     indexTemplate :: HK.Identifier
   , -- | template for post pages
     postTemplate :: HK.Identifier
+  , -- | template for comments pages
+    commentTemplate :: HK.Identifier
   , -- | pattern for @index.html@ at root of website
     indexPattern :: HK.Pattern
   , -- | pattern for posts
@@ -131,6 +133,7 @@ instance Yaml.FromJSON SiteConfig where
     <$> parseOrDefaultI v "default_template" defaultTemplate
     <*> parseOrDefaultI v "index_template" indexTemplate
     <*> parseOrDefaultI v "post_template" postTemplate
+    <*> parseOrDefaultI v "comment_template" commentTemplate
     <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "post" postPattern
     <*> parseOrDefaultP v "comment" commentPattern
@@ -153,6 +156,7 @@ defaultSiteConfig = SiteConfig
   { defaultTemplate = "templates/default.html"
   , indexTemplate = "templates/index.html"
   , postTemplate = "templates/post.html"
+  , commentTemplate = "templates/post-and-comments.html"
   , indexPattern = HK.fromGlob "index.md"
   , postPattern = HK.fromGlob "posts/*/index.md"
   , commentPattern = HK.fromGlob "posts/*/comment-*.md"

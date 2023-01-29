@@ -99,7 +99,7 @@ postCompiler SiteConfig{..} = do
     return . fmap (demoteHeadersBy 2) >>=
     loadAndApplyTemplate postTemplate postContext >>=
     -- TODO: save snapshot for RSS
-    loadAndApplyTemplate "templates/post-and-comments.html" commentContext >>=
+    loadAndApplyTemplate commentTemplate commentContext >>=
     loadAndApplyTemplate defaultTemplate defaultContext
   where
     -- time formats
