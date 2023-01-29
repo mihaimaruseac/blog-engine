@@ -27,7 +27,7 @@ import Text.Pandoc
 -- | The custom compiler
 --
 -- Configurations:
---   * TODO: Describe configurations
+--   * Enable MathJax for writing math code
 blogCompiler :: Compiler (Item String)
 blogCompiler = pandocCompilerWith readOptions writeOptions
 
