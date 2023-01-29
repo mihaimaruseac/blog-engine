@@ -96,39 +96,38 @@ postCompiler SiteConfig{..} = do
         Just l -> listField "references" (field "reference" (return .  itemBody)) (return $ map (Item underlying) l)
         Nothing -> mempty
   -- 1. Extract comments (if any) to generate the proper context
-  current <- dropFileName . toFilePath <$> getUnderlying
-  let pattern = fromGlob $ current </> localCommentPattern
-  comments <- loadAll pattern >>= sortById
-  let commentContext = mconcat
-        [ constField "numComments" $ printf "%d" $ length comments
-        , listField "comments" localCommentContext (return comments)
+  commentContext <- processComments localCommentPattern
+  -- 2. Compile the post, insert the proper snapshots and contexts
+  let postContext = mconcat
+        [ formattedPublishedDateContext
+        , modificationTimeField "changed" machineTimeFormat
+        , modificationTimeField "fchanged" readableTimeFormat
+        , refContext
         , defaultContext
         ]
-  -- 2. Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
-    loadAndApplyTemplate postTemplate (postContext refContext) >>=
+    loadAndApplyTemplate postTemplate postContext >>=
     -- TODO: save snapshot for RSS
     loadAndApplyTemplate commentTemplate commentContext >>=
     loadAndApplyTemplate defaultTemplate defaultContext
-  where
-    -- time formats
-    readableFormat = "%B %e, %Y"
-    machineFormat = "%F"
-    -- contexts
-    fpublishedContext = dateField "fpublished" readableFormat
-    localCommentContext = fpublishedContext <> defaultContext
-    postContext refContext = mconcat
-      [ fpublishedContext
-      , modificationTimeField "changed" machineFormat
-      , modificationTimeField "fchanged" readableFormat
-      , refContext
-      , defaultContext
-      ]
 
 -- | The compiler for comment snippets.
 commentCompiler :: Compiler (Item String)
 commentCompiler = blogCompiler
+
+-- | Process te comments for a post.
+processComments :: String -> Compiler (Context String)
+processComments commentPattern = do
+  current <- dropFileName . toFilePath <$> getUnderlying
+  comments <- loadAll (fromGlob $ current </> commentPattern) >>= sortById
+  return $ mconcat
+    [ constField "numComments" $ printf "%d" $ length comments
+    , listField "comments" localCommentContext (return comments)
+    , defaultContext
+    ]
+  where
+    localCommentContext = formattedPublishedDateContext <> defaultContext
 
 -- | Sort a set of 'Hakyll.Item's by their @id@ (assumes each contains an @id@
 -- field in their corresponding @Hakyll.Metadata@.
@@ -142,3 +141,15 @@ sortById items = mapM getId items >>= return . map snd . sortOn fst
       case parsed of
         Just [(i', "")] -> return (i', i)
         _ ->  error $ printf "Failed to get id from %s" $ show iid
+
+-- | Formatted date of publication
+formattedPublishedDateContext :: Context a
+formattedPublishedDateContext = dateField "fpublished" readableTimeFormat
+
+-- | Readable time format
+readableTimeFormat :: String
+readableTimeFormat = "%B %e, %Y"
+
+-- | Machine time format
+machineTimeFormat :: String
+machineTimeFormat = "%F"
