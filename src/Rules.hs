@@ -31,6 +31,8 @@ import Text.Printf
 import Compiler (blogCompiler)
 import Config (SiteConfig(..))
 
+import Debug.Trace
+
 -- | The rules to generate the site.
 --
 -- In general, the pattern of these rules is to match on a file pattern (glob
@@ -85,6 +87,14 @@ postRules prefix compiler = do
 -- Includes rules for comments, etc.
 postCompiler :: SiteConfig -> Compiler (Item String)
 postCompiler SiteConfig{..} = do
+  -- Testing
+  underlying <- getUnderlying
+  metadata <- getMetadata underlying
+  let meta = lookupStringList "references" metadata
+  traceM $ printf "%s - %s" (show metadata) (show meta)
+  let refContext = case meta of
+        Just l -> listField "references" (field "reference" (return .  itemBody)) (return $ map (Item underlying) l)
+        Nothing -> mempty
   -- 1. Extract comments (if any) to generate the proper context
   current <- dropFileName . toFilePath <$> getUnderlying
   let pattern = fromGlob $ current </> localCommentPattern
@@ -97,7 +107,7 @@ postCompiler SiteConfig{..} = do
   -- 2. Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
-    loadAndApplyTemplate postTemplate postContext >>=
+    loadAndApplyTemplate postTemplate (postContext refContext) >>=
     -- TODO: save snapshot for RSS
     loadAndApplyTemplate commentTemplate commentContext >>=
     loadAndApplyTemplate defaultTemplate defaultContext
@@ -108,10 +118,11 @@ postCompiler SiteConfig{..} = do
     -- contexts
     fpublishedContext = dateField "fpublished" readableFormat
     localCommentContext = fpublishedContext <> defaultContext
-    postContext = mconcat
+    postContext refContext = mconcat
       [ fpublishedContext
       , modificationTimeField "changed" machineFormat
       , modificationTimeField "fchanged" readableFormat
+      , refContext
       , defaultContext
       ]
 
