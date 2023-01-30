@@ -56,7 +56,7 @@ citeContext = mconcat
   [ getMandatoryField "author" author
   , getMandatoryField "title" title
   , getMandatoryField "venue" venue
-  , HK.boolField "hasdoi" (isJust . doi . HK.itemBody)
+  , HK.boolField "hasDoi" (isJust . doi . HK.itemBody)
   , HK.field "doi" (return . fromJust . doi . HK.itemBody)
   ]
   where
