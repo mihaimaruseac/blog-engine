@@ -103,6 +103,8 @@ data SiteConfig = SiteConfig
     postTemplate :: HK.Identifier
   , -- | template for comments pages
     commentTemplate :: HK.Identifier
+  , -- | template for update pages
+    updateTemplate :: HK.Identifier
   , -- | pattern for @index.html@ at root of website
     indexPattern :: HK.Pattern
   , -- | pattern for posts
@@ -114,6 +116,11 @@ data SiteConfig = SiteConfig
     -- customize this option. There is a way to automatically determine this
     -- but we can leave it for later.
     localCommentPattern :: String
+  , -- | pattern for updates
+    updatePattern :: HK.Pattern
+  , -- | local part of updates pattern
+    -- See 'localCommentPattern'
+    localUpdatePattern :: String
   , -- | strip prefix from 'postPattern' on publishing
     -- e.g., if 'postPattern' is @posts/*.md@ and 'stripPostOnPublish' is
     -- @posts/@, the resulting posts will be in the root of the site. If
@@ -134,10 +141,13 @@ instance Yaml.FromJSON SiteConfig where
     <*> parseOrDefaultI v "index_template" indexTemplate
     <*> parseOrDefaultI v "post_template" postTemplate
     <*> parseOrDefaultI v "comment_template" commentTemplate
+    <*> parseOrDefaultI v "update_template" updateTemplate
     <*> parseOrDefaultP v "index" indexPattern
     <*> parseOrDefaultP v "post" postPattern
     <*> parseOrDefaultP v "comment" commentPattern
     <*> v .:? "local_comment" .!= localCommentPattern defaultSiteConfig
+    <*> parseOrDefaultP v "update" updatePattern
+    <*> v .:? "local_update" .!= localUpdatePattern defaultSiteConfig
     <*> v .:? "post_prefix" .!= stripOnPublish defaultSiteConfig
     <*> parseOrDefaultP v "templates" templatesPattern
     <*> parseOrDefaultP v "css" cssPattern
@@ -157,10 +167,13 @@ defaultSiteConfig = SiteConfig
   , indexTemplate = "templates/index.html"
   , postTemplate = "templates/post.html"
   , commentTemplate = "templates/comments.html"
+  , updateTemplate = "templates/updates.html"
   , indexPattern = HK.fromGlob "index.md"
   , postPattern = HK.fromGlob "posts/*/index.md"
   , commentPattern = HK.fromGlob "posts/*/comment-*.md"
   , localCommentPattern = "comment-*.md"
+  , updatePattern = HK.fromGlob "posts/*/update-*.md"
+  , localUpdatePattern = "update-*.md"
   , stripOnPublish = "posts/"
   , templatesPattern = HK.fromGlob "templates/*"
   , cssPattern = HK.fromGlob "css/*"

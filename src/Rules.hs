@@ -46,6 +46,7 @@ siteRules sc@SiteConfig{..} = do
   -- These items don't have a file for their own in output
   match templatesPattern $ compile templateCompiler
   match commentPattern $ compile commentCompiler
+  match updatePattern $ compile updateCompiler
 
 -- | The rules to generate CSS files.
 --
@@ -88,12 +89,14 @@ postCompiler :: SiteConfig -> Compiler (Item String)
 postCompiler SiteConfig{..} = do
   -- Extract comments and references (if any) to generate the proper contexts
   commentContext <- processComments localCommentPattern
+  updateContext <- processUpdates localUpdatePattern
   referencesContext <- processReferences
   -- Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
     loadAndApplyTemplate postTemplate (referencesContext <> postContext) >>=
     -- TODO: save snapshot for RSS
+    loadAndApplyTemplate updateTemplate updateContext >>=
     loadAndApplyTemplate commentTemplate commentContext >>=
     loadAndApplyTemplate defaultTemplate defaultContext
   where
@@ -120,6 +123,25 @@ processComments commentPattern = do
     ]
   where
     localCommentContext = formattedPublishedDateContext <> defaultContext
+
+-- | The compiler for update snippets.
+updateCompiler :: Compiler (Item String)
+updateCompiler = blogCompiler
+
+-- | Processes the updates for a post.
+processUpdates :: String -> Compiler (Context String)
+processUpdates updatePattern = do
+  current <- dropFileName . toFilePath <$> getUnderlying
+  updates <- loadAll (fromGlob $ current </> updatePattern) >>= sortById
+  case updates of
+    [] -> return defaultContext
+    us -> return $ mconcat
+      [ boolField "hasUpdates" $ const True
+      , listField "updates" localUpdatesContext $ return us
+      , defaultContext
+      ]
+  where
+    localUpdatesContext = formattedPublishedDateContext <> defaultContext
 
 -- | Processes the references for a post.
 processReferences :: Compiler (Context a)
