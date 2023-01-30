@@ -87,7 +87,7 @@ postRules prefix compiler = do
 -- Includes rules for comments, etc.
 postCompiler :: SiteConfig -> Compiler (Item String)
 postCompiler SiteConfig{..} = do
-  -- Extract comments and references (if any) to generate the proper contexts
+  -- Extract ancillary data (if any) to generate the proper contexts
   commentContext <- processComments localCommentPattern
   updateContext <- processUpdates localUpdatePattern
   referencesContext <- processReferences
