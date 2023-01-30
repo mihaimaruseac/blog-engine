@@ -32,7 +32,7 @@ module Config
 import Control.Applicative ((<|>))
 import Control.Monad ((>=>))
 import qualified Data.Yaml as Yaml
-import Data.Yaml as Yaml ((.:), (.:?), (.!=))
+import Data.Yaml ((.:), (.:?), (.!=))
 import qualified Hakyll as HK
 import System.Exit (die)
 

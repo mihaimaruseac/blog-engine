@@ -30,8 +30,7 @@ import Text.Printf
 
 import Compiler (blogCompiler)
 import Config (SiteConfig(..))
-
-import Debug.Trace
+import References (getReferenceContext)
 
 -- | The rules to generate the site.
 --
@@ -124,13 +123,7 @@ processComments commentPattern = do
 
 -- | Processes the references for a post.
 processReferences :: Compiler (Context a)
-processReferences = do
-  metadata <- getUnderlying >>= getMetadata
-  let meta = lookupStringList "references" metadata
-  traceM $ printf "%s - %s" (show metadata) (show meta)
-  return $ case meta of
-    Just l -> listField "references" (field "reference" (return . itemBody)) (sequence $ map makeItem l)
-    Nothing -> mempty
+processReferences = getUnderlying >>= getMetadata >>= getReferenceContext
 
 -- | Sort a set of 'Hakyll.Item's by their @id@ (assumes each contains an @id@
 -- field in their corresponding @Hakyll.Metadata@.

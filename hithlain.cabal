@@ -29,11 +29,14 @@ executable hithlain
     , CLI
     , Compiler
     , Config
+    , References
     , Rules
   build-depends:
     , base ^>=4.16.4.0
+    , aeson ^>=2.1.1.0
     , filepath ^>=1.4
     , hakyll ^>=4.15.1.1
     , optparse-applicative ^>=0.17.0.0
     , pandoc ^>=2.19.2
+    , vector ^>=0.13.0.0
     , yaml ^>=0.11.8.0
