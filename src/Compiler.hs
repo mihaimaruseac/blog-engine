@@ -19,10 +19,19 @@ properly is done here.
 module Compiler
   ( -- * Custom compiler, replacement for 'Hakyll.pandocCompiler'
     blogCompiler
+    -- * Highlight style
+  , highlightStyle
   ) where
 
 import Hakyll
 import Text.Pandoc
+import Text.Pandoc.Highlighting
+
+-- | The default highlight style.
+--
+-- A global constant, used to color code.
+highlightStyle :: Style
+highlightStyle = pygments
 
 -- | The custom compiler.
 --
@@ -39,4 +48,5 @@ readOptions = defaultHakyllReaderOptions
 writeOptions :: WriterOptions
 writeOptions = defaultHakyllWriterOptions
   { writerHTMLMathMethod = MathJax ""
+  , writerHighlightStyle = Just highlightStyle
   }

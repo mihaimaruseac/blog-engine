@@ -26,9 +26,10 @@ module Rules
 import Data.List (sortOn)
 import Hakyll
 import System.FilePath
+import Text.Pandoc.Highlighting
 import Text.Printf
 
-import Compiler (blogCompiler)
+import Compiler (blogCompiler, highlightStyle)
 import Config (SiteConfig(..))
 import References (getReferenceContext)
 
@@ -39,8 +40,11 @@ import References (getReferenceContext)
 -- compilation directives).
 siteRules :: SiteConfig -> Rules ()
 siteRules sc@SiteConfig{..} = do
+  -- Style rules
   match cssPattern cssRules
   match fontPattern fontRules
+  create [fromFilePath cssSyntaxPath] syntaxRules
+  -- Actual content rules
   match indexPattern $ indexRules $ indexCompiler sc
   match postPattern $ postRules stripOnPublish $ postCompiler sc
   -- These items don't have a file for their own in output
@@ -55,6 +59,12 @@ cssRules :: Rules ()
 cssRules = do
   route idRoute
   compile compressCssCompiler
+
+-- | The rules to generate the code highlighting style.
+syntaxRules :: Rules ()
+syntaxRules = do
+  route idRoute
+  compile . makeItem $ compressCss . styleToCss $ highlightStyle
 
 -- | The rules to generate the font CSS style.
 --
