@@ -30,7 +30,7 @@ import Text.Pandoc.Highlighting
 import Text.Printf
 
 import Compiler (blogCompiler, highlightStyle)
-import Config (SiteConfig(..))
+import Config (FeedConfig(..), SiteConfig(..))
 import References (getReferenceContext)
 
 -- | The rules to generate the site.
@@ -38,8 +38,8 @@ import References (getReferenceContext)
 -- In general, the pattern of these rules is to match on a file pattern (glob
 -- or regex, as configured in "Config") and apply a set of rules (routing and
 -- compilation directives).
-siteRules :: SiteConfig -> Rules ()
-siteRules sc@SiteConfig{..} = do
+siteRules :: String -> FeedConfig -> SiteConfig -> Rules ()
+siteRules siteTitle fc sc@SiteConfig{..} = do
   -- Style rules
   match cssPattern cssRules
   match fontPattern fontRules
@@ -47,6 +47,7 @@ siteRules sc@SiteConfig{..} = do
   -- Actual content rules
   match indexPattern $ indexRules $ indexCompiler sc
   match postPattern $ postRules stripOnPublish $ postCompiler sc
+  create [fromFilePath rssFeedPath] $ feedRules siteTitle fc sc
   -- These items don't have a file for their own in output
   match templatesPattern $ compile templateCompiler
   match commentPattern $ compile commentCompiler
@@ -162,6 +163,37 @@ processUpdates updatePattern = do
       ]
   where
     localUpdatesContext = formattedPublishedDateContext <> defaultContext
+
+-- | Create the actual RSS feed
+feedRules :: String -> FeedConfig -> SiteConfig -> Rules ()
+feedRules siteTitle fc sc = do
+  route idRoute
+  compile $ feedCompiler siteTitle fc sc
+
+-- | Compile the feed
+feedCompiler :: String -> FeedConfig -> SiteConfig -> Compiler (Item String)
+feedCompiler siteTitle FeedConfig{..} SiteConfig{..} = do
+  -- Load all posts to display in the index
+  posts <- loadAllSnapshots postPattern postSnap >>= (tk . reverse <$>) . sortById
+  -- Load the templates needed for the feed, then compile the feed
+  feedTpl <- loadBody feedTemplate
+  itemTpl <- loadBody feedItemTemplate
+  renderRssWithTemplates feedTpl itemTpl feedConfiguration feedContext posts
+  where
+    tk = maybe id take feedItems
+    feedConfiguration = FeedConfiguration
+      { feedTitle = siteTitle
+      , feedDescription = feedDescription
+      , feedAuthorName = feedAuthorName
+      , feedAuthorEmail = feedAuthorEmail
+      , feedRoot = feedRoot
+      }
+    feedContext = mconcat
+      [ teaserField "teaser" postSnap
+      , bodyField "description"
+      , fieldStrip
+      , defaultContext
+      ]
 
 -- | Processes the references for a post.
 processReferences :: Compiler (Context a)

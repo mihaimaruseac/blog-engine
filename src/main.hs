@@ -36,7 +36,7 @@ main = do
   Config{..} <- parseConfig configFile
   logger <- HK.new $ if verbose then HK.Debug else HK.Message
   let config = HK.defaultConfiguration { HK.providerDirectory = contentPath }
-  let rules = siteRules siteConfig
+  let rules = siteRules siteTitle feedConfig siteConfig
   case command of
     Build dry -> HK.build (whatMode dry) config logger rules >>= exitWith
     Clean -> HK.clean config logger
