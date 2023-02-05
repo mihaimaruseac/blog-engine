@@ -82,9 +82,18 @@ indexRules compiler = do
 
 -- | The compiler for index pages.
 indexCompiler :: SiteConfig -> Compiler (Item String)
-indexCompiler SiteConfig{..} = blogCompiler >>=
-  loadAndApplyTemplate indexTemplate defaultContext >>=
-  loadAndApplyTemplate defaultTemplate defaultContext
+indexCompiler SiteConfig{..} = do
+  -- Load all posts to display in the index
+  posts <- loadAllSnapshots postPattern postSnap >>= (reverse <$>) . sortById
+  let indexContext = mconcat
+        [ constField "numArticles" $ printf "%d" $ length posts
+        , listField "articles" (fieldStrip <> defaultContext) (return posts)
+        , defaultContext
+        ]
+  -- Compile the index, with the corresponding contexts
+  blogCompiler >>=
+    loadAndApplyTemplate indexTemplate indexContext >>=
+    loadAndApplyTemplate defaultTemplate defaultContext
 
 -- | The rules to build the pages for each post.
 postRules :: String -> Compiler (Item String) -> Rules ()
@@ -104,6 +113,7 @@ postCompiler SiteConfig{..} = do
   -- Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
+    saveSnapshot postSnap >>=
     loadAndApplyTemplate postTemplate (referencesContext <> postContext) >>=
     -- TODO: save snapshot for RSS
     loadAndApplyTemplate updateTemplate updateContext >>=
@@ -181,3 +191,18 @@ readableTimeFormat = "%B %e, %Y"
 -- | Machine time format
 machineTimeFormat :: String
 machineTimeFormat = "%F"
+
+-- | Post snapshot for index and RSS pages
+postSnap :: Snapshot
+postSnap = "content"
+
+-- | Function field to strip parts of the context value.
+--
+-- Removals are done in order.
+fieldStrip :: Context a
+fieldStrip = functionField "remove" $ \args _ -> case args of
+  f:toStrip -> return $ strip f toStrip
+  _ -> fail "remove needs at least the field argument to start stripping"
+  where
+    strip s [] = s
+    strip s (p:ps) = strip (replaceAll p (const "") s) ps
