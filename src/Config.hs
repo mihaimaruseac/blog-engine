@@ -107,6 +107,8 @@ data SiteConfig = SiteConfig
     defaultTemplate :: HK.Identifier
   , -- | template for index pages (e.g. root @index.html@)
     indexTemplate :: HK.Identifier
+  , -- | template for the 404 page
+    notFoundTemplate :: HK.Identifier
   , -- | template for post pages
     postTemplate :: HK.Identifier
   , -- | template for comments pages
@@ -155,6 +157,7 @@ instance Yaml.FromJSON SiteConfig where
   parseJSON = Yaml.withObject "SiteConfig" $ \v -> SiteConfig
     <$> parseOrDefaultI v "default_template" defaultTemplate
     <*> parseOrDefaultI v "index_template" indexTemplate
+    <*> parseOrDefaultI v "not_found_template" notFoundTemplate
     <*> parseOrDefaultI v "post_template" postTemplate
     <*> parseOrDefaultI v "comment_template" commentTemplate
     <*> parseOrDefaultI v "update_template" updateTemplate
@@ -185,6 +188,7 @@ defaultSiteConfig :: SiteConfig
 defaultSiteConfig = SiteConfig
   { defaultTemplate = "templates/default.html"
   , indexTemplate = "templates/index.html"
+  , notFoundTemplate = "templates/404.html"
   , postTemplate = "templates/post.html"
   , commentTemplate = "templates/comments.html"
   , updateTemplate = "templates/updates.html"

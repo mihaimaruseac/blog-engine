@@ -48,6 +48,7 @@ siteRules siteTitle fc sc@SiteConfig{..} = do
   match indexPattern $ indexRules $ indexCompiler sc
   match postPattern $ postRules stripOnPublish $ postCompiler sc
   create [fromFilePath rssFeedPath] $ feedRules siteTitle fc sc
+  create ["404.html"] $ pageNotFound $ pageNotFoundCompiler sc
   -- These items don't have a file for their own in output
   match templatesPattern $ compile templateCompiler
   match commentPattern $ compile commentCompiler
@@ -195,6 +196,18 @@ feedCompiler siteTitle FeedConfig{..} SiteConfig{..} = do
       , fieldStrip
       , defaultContext
       ]
+
+-- | Add a 404 page
+pageNotFound :: Compiler (Item String) -> Rules ()
+pageNotFound compiler = do
+  route idRoute
+  compile compiler
+
+-- | Compiler for 404 page
+pageNotFoundCompiler :: SiteConfig -> Compiler (Item String)
+pageNotFoundCompiler SiteConfig{..} = makeItem "404" >>=
+  loadAndApplyTemplate notFoundTemplate defaultContext >>=
+  loadAndApplyTemplate defaultTemplate defaultContext
 
 -- | Processes the references for a post.
 processReferences :: Compiler (Context a)
