@@ -191,6 +191,7 @@ feedCompiler siteTitle FeedConfig{..} SiteConfig{..} = do
     feedContext = mconcat
       [ teaserField "teaser" postSnap
       , bodyField "description"
+      , dateField "published" "%a, %d %b %Y %H:%M:%S %z"
       , fieldStrip
       , defaultContext
       ]
