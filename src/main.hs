@@ -45,7 +45,7 @@ main = do
       let config' = mergeWatchConfig config (host' <?> host) (port' <?> port)
       HK.watch config' logger
         (HK.previewHost config') (HK.previewPort config')
-        runServer rules
+        (not runServer) rules
 
 -- | Merge value from command line with value from config, if any are present.
 --
