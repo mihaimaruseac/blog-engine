@@ -138,7 +138,7 @@ watchCommandParser :: OA.Mod OA.CommandFields Command
 watchCommandParser = OA.command "watch" parser <> OA.metavar "watch"
   where
     parser = OA.info (Watch <$> hostParser <*> portParser <*> serverParser) opts
-    opts = OA.fullDesc <> OA.progDesc "Clean and build again"
+    opts = OA.fullDesc <> OA.progDesc "Rebuild on every change and open debug server"
 
 -- | Adds @[-h|--host=HOST/IP]@ to watch command.
 hostParser :: OA.Parser (Maybe String)
