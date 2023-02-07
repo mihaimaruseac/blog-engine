@@ -122,8 +122,8 @@ postCompiler author title root SiteConfig{..} = do
   -- Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
-    loadAndApplyTemplate postTemplate (referencesContext <> postContext) >>=
     saveSnapshot postSnap >>=
+    loadAndApplyTemplate postTemplate (referencesContext <> postContext) >>=
     loadAndApplyTemplate updateTemplate updateContext >>=
     loadAndApplyTemplate commentTemplate commentContext >>=
     loadAndApplyTemplate defaultTemplate (socialCtx ogTpl <> defaultContext)
