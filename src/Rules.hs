@@ -180,13 +180,13 @@ feedCompiler siteTitle FeedConfig{..} SiteConfig{..} = do
   itemTpl <- loadBody feedItemTemplate
   renderRssWithTemplates feedTpl itemTpl feedConfiguration feedContext posts
   where
-    tk = maybe id take feedItems
+    tk = maybe id take cfgFeedItems
     feedConfiguration = FeedConfiguration
       { feedTitle = siteTitle
-      , feedDescription = feedDescription
-      , feedAuthorName = feedAuthorName
-      , feedAuthorEmail = feedAuthorEmail
-      , feedRoot = feedRoot
+      , feedDescription = cfgFeedDescription
+      , feedAuthorName = cfgFeedAuthorName
+      , feedAuthorEmail = cfgFeedAuthorEmail
+      , feedRoot = cfgFeedRoot
       }
     feedContext = mconcat
       [ teaserField "teaser" postSnap

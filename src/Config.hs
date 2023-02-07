@@ -234,11 +234,11 @@ instance Yaml.FromJSON WrappedIdentifier where
 --
 -- See "HK.FeedConfiguration".
 data FeedConfig = FeedConfig
-  { feedAuthorName :: String
-  , feedAuthorEmail :: String
-  , feedRoot :: String
-  , feedDescription :: String
-  , feedItems :: Maybe Int
+  { cfgFeedAuthorName :: String
+  , cfgFeedAuthorEmail :: String
+  , cfgFeedRoot :: String
+  , cfgFeedDescription :: String
+  , cfgFeedItems :: Maybe Int
   } deriving (Show)
 
 instance Yaml.FromJSON FeedConfig where
