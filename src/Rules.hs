@@ -117,7 +117,6 @@ postCompiler SiteConfig{..} = do
     return . fmap (demoteHeadersBy 2) >>=
     saveSnapshot postSnap >>=
     loadAndApplyTemplate postTemplate (referencesContext <> postContext) >>=
-    -- TODO: save snapshot for RSS
     loadAndApplyTemplate updateTemplate updateContext >>=
     loadAndApplyTemplate commentTemplate commentContext >>=
     loadAndApplyTemplate defaultTemplate defaultContext
