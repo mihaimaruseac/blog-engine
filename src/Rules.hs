@@ -39,14 +39,15 @@ import References (getReferenceContext)
 -- or regex, as configured in "Config") and apply a set of rules (routing and
 -- compilation directives).
 siteRules :: String -> FeedConfig -> SiteConfig -> Rules ()
-siteRules siteTitle fc sc@SiteConfig{..} = do
+siteRules siteTitle fc@FeedConfig{..} sc@SiteConfig{..} = do
   -- Style rules
   match cssPattern cssRules
   match fontPattern fontRules
   create [fromFilePath cssSyntaxPath] syntaxRules
   -- Actual content rules
   match indexPattern $ indexRules $ indexCompiler sc
-  match postPattern $ postRules stripOnPublish $ postCompiler sc
+  match postPattern $ postRules stripOnPublish $
+    postCompiler cfgFeedAuthorName siteTitle cfgFeedRoot sc
   create [fromFilePath rssFeedPath] $ feedRules siteTitle fc sc
   create ["404.html"] $ pageNotFound $ pageNotFoundCompiler sc
   -- These items don't have a file for their own in output
@@ -106,12 +107,18 @@ postRules prefix compiler = do
 -- | The compiler for posts.
 --
 -- Includes rules for comments, etc.
-postCompiler :: SiteConfig -> Compiler (Item String)
-postCompiler SiteConfig{..} = do
+postCompiler
+  :: String -- ^ author
+  -> String -- ^ site title
+  -> String -- ^ site root
+  -> SiteConfig -- ^ site configuration
+  -> Compiler (Item String)
+postCompiler author title root SiteConfig{..} = do
   -- Extract ancillary data (if any) to generate the proper contexts
   commentContext <- processComments localCommentPattern
   updateContext <- processUpdates localUpdatePattern
   referencesContext <- processReferences
+  ogTpl <- loadBody openGraphTemplate
   -- Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
     return . fmap (demoteHeadersBy 2) >>=
@@ -119,13 +126,20 @@ postCompiler SiteConfig{..} = do
     saveSnapshot postSnap >>=
     loadAndApplyTemplate updateTemplate updateContext >>=
     loadAndApplyTemplate commentTemplate commentContext >>=
-    loadAndApplyTemplate defaultTemplate defaultContext
+    loadAndApplyTemplate defaultTemplate (socialCtx ogTpl <> defaultContext)
   where
     postContext = mconcat
       [ formattedPublishedDateContext
       , modificationTimeField "changed" machineTimeFormat
       , modificationTimeField "fchanged" readableTimeFormat
       , defaultContext
+      ]
+    socialCtx ogTemplate = mconcat
+      [ openGraphFields root ogTemplate postContext
+      , constField "twitter-creator" author
+      , constField "twitter-site" title
+      , twitterCardField "twitter" postContext
+      , jsonldField "jsonld" postContext
       ]
 
 -- | The compiler for comment snippets.
@@ -251,3 +265,21 @@ fieldStrip = functionField "remove" $ \args _ -> case args of
   where
     strip s [] = s
     strip s (p:ps) = strip (replaceAll p (const "") s) ps
+
+-- | Function field to insert OpenGraph metadata.
+--
+-- We need to control the template, hence we copy the code from @hakyll@ and
+-- adapt to our needs.
+--
+-- Needs the "postContext" context to extract title, etc. Load the template in
+-- "blogCompiler" and pass here.
+openGraphFields :: String -> Template -> Context a -> Context a
+openGraphFields siteRoot template postContext =
+  functionField "opengraph" $ \_ i -> do
+    itemBody <$> applyTemplate template context i
+  where
+    context = mconcat
+      [ constField "root" siteRoot
+      , fieldStrip
+      , postContext
+      ]
