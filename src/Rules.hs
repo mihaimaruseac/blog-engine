@@ -54,6 +54,21 @@ siteRules siteTitle fc@FeedConfig{..} sc@SiteConfig{..} = do
   match templatesPattern $ compile templateCompiler
   match commentPattern $ compile commentCompiler
   match updatePattern $ compile updateCompiler
+  -- Images and other static files
+  match imagePattern staticRules
+  where
+    imagePattern = foldl1 (.||.) $ map fromGlob
+      [ "**.ico"
+      , "**.png"
+      , "**.jpg"
+      , "**.jpeg"
+      ]
+
+-- | Rules for static files (images, etc.)
+staticRules :: Rules ()
+staticRules = do
+  route idRoute
+  compile copyFileCompiler
 
 -- | The rules to generate CSS files.
 --
