@@ -151,8 +151,6 @@ data SiteConfig = SiteConfig
     feedTemplate :: HK.Identifier
   , -- | template for an item in the RSS feed
     feedItemTemplate :: HK.Identifier
-  , -- | template for open graph metadata
-    openGraphTemplate :: HK.Identifier
   } deriving (Show)
 
 instance Yaml.FromJSON SiteConfig where
@@ -177,7 +175,6 @@ instance Yaml.FromJSON SiteConfig where
     <*> v .:? "rss_file" .!= rssFeedPath defaultSiteConfig
     <*> parseOrDefaultI v "feed_template" feedTemplate
     <*> parseOrDefaultI v "feed_item_template" feedItemTemplate
-    <*> parseOrDefaultI v "og_template" openGraphTemplate
     where
       parseOrDefaultI v key def = toHKI (v .:? key) .!= def defaultSiteConfig
       parseOrDefaultP v key def = toHKP (v .:? key) .!= def defaultSiteConfig
@@ -209,7 +206,6 @@ defaultSiteConfig = SiteConfig
   , rssFeedPath = "rss.xml"
   , feedTemplate = "templates/rss.xml"
   , feedItemTemplate = "templates/rss-item.xml"
-  , openGraphTemplate = "templates/open-graph.html"
   }
 
 -- | Netwtype to wrap around 'Hakyll.Core.Indetifier.Pattern.Pattern' to add a
