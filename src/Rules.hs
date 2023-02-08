@@ -66,6 +66,7 @@ siteRules siteTitle fc@FeedConfig{..} sc@SiteConfig{..} = do
       [ constField "author" cfgFeedAuthorName
       , constField "site" siteTitle
       , constField "root" cfgFeedRoot
+      , descField cfgFeedDescription
       , fieldStrip
       , defaultContext
       ]
@@ -283,3 +284,13 @@ fieldStrip = functionField "remove" $ \args _ -> case args of
   where
     strip s [] = s
     strip s (p:ps) = strip (replaceAll p (const "") s) ps
+
+-- | Field to generate the description of an item
+descField :: String -> Context String
+descField defaultDescription = field f $ \item -> do
+  metaDescr <- getMetadataField (itemIdentifier item) f
+  case metaDescr of
+    Just df -> return df
+    Nothing -> return defaultDescription
+  where
+    f = "description"
