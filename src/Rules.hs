@@ -24,14 +24,15 @@ module Rules
   ) where
 
 import Data.List (sortOn)
-import Hakyll
-import System.FilePath
-import Text.Pandoc.Highlighting
-import Text.Printf
+import System.FilePath (dropFileName, (</>))
+import Text.Pandoc.Highlighting (styleToCss)
+import Text.Printf (printf)
 
-import Compiler (blogCompiler, highlightStyle)
-import Config (FeedConfig(..), SiteConfig(..))
-import References (getReferenceContext)
+import Hakyll
+
+import Compiler
+import Config
+import References
 
 -- | The rules to generate the site.
 --
