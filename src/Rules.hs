@@ -138,7 +138,7 @@ postCompiler metaContext SiteConfig{..} = do
   referencesContext <- processReferences
   -- Compile the post, insert the proper snapshots and contexts
   blogCompiler >>=
-    return . fmap (demoteHeadersBy 2) >>=
+    return . fmap demoteHeaders >>=
     saveSnapshot postSnap >>=
     loadAndApplyTemplate postTemplate (referencesContext <> postContext) >>=
     loadAndApplyTemplate updateTemplate updateContext >>=
