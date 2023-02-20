@@ -18,7 +18,7 @@ build-type:         Simple
 extra-doc-files:    README.md, CHANGELOG.md
 
 common compile-options
-    ghc-options: -O2 -threaded -Wall -Werror -Wcompat
+  ghc-options: -O2 -threaded -Wall -Werror -Wcompat
 
 executable hithlain
   import:           compile-options
