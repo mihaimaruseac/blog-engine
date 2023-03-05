@@ -26,6 +26,7 @@ module Compiler
 import Hakyll
 import Text.Pandoc
 import Text.Pandoc.Highlighting
+import Text.Pandoc.Walk
 
 -- | The default highlight style.
 --
@@ -37,8 +38,11 @@ highlightStyle = pygments
 --
 -- Configurations:
 --   * Enable MathJax for writing math code
+--   * Add links to each section, on hover
 blogCompiler :: Compiler (Item String)
-blogCompiler = pandocCompilerWith readOptions writeOptions
+blogCompiler = pandocCompilerWithTransform readOptions writeOptions xforms
+  where
+    xforms = addSectionLink
 
 -- | Read options for 'blogCompiler'.
 readOptions :: ReaderOptions
@@ -50,3 +54,14 @@ writeOptions = defaultHakyllWriterOptions
   { writerHTMLMathMethod = MathJax ""
   , writerHighlightStyle = Just highlightStyle
   }
+
+-- | Add links to sections, on hover
+-- Inspired by https://frasertweedale.github.io/blog-fp/posts/2020-12-10-hakyll-section-links.html
+addSectionLink :: Pandoc -> Pandoc
+addSectionLink = walk transformSectionHeaders
+
+-- | Pandoc walker over section headers to add section links.
+transformSectionHeaders :: Block -> Block
+transformSectionHeaders (Header n attr@(aid, _, _) next) =
+  Header n attr $ next <> [Space, Link nullAttr [Str "🔗"] ("#" <> aid, "")]
+transformSectionHeaders x = x
