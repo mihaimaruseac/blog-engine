@@ -218,6 +218,7 @@ feedCompiler siteTitle FeedConfig{..} SiteConfig{..} = do
       [ teaserField "teaser" postSnap
       , bodyField "description"
       , dateField "published" feedTimeFormat
+      , dateField "updated" feedTimeFormat
       , fieldStrip
       , defaultContext
       ]
