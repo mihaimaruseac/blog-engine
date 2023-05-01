@@ -3,9 +3,8 @@
 let
   localGHC = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [
     diagrams
+    diagrams-rasterific
     palette
-    # diagrams-html5
-    # diagrams-svg
   ]);
 in
   with pkgs;
