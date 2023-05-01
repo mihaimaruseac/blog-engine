@@ -18,7 +18,7 @@ build-type:         Simple
 extra-doc-files:    README.md, CHANGELOG.md
 
 common compile-options
-  ghc-options: -O2 -threaded -Wall -Werror -Wcompat
+  ghc-options: -O2 -threaded -Wall -Wcompat -Werror
 
 executable hithlain
   import:           compile-options
@@ -29,15 +29,24 @@ executable hithlain
     , CLI
     , Compiler
     , Config
+    , Diagrams
     , References
     , Rules
   build-depends:
-    , base ^>=4.16.4.0
-    , aeson ^>=2.1.1.0
-    , filepath ^>=1.4
-    , hakyll ^>=4.15.1.1
-    , optparse-applicative ^>=0.17.0.0
-    , pandoc ^>=2.19.2
-    , pandoc-types ^>=1.22.2.1
-    , vector ^>=0.13.0.0
-    , yaml ^>=0.11.8.0
+    , base ^>= 4.15.1.0
+    , aeson ^>= 2.1.1.0
+    , diagrams-builder ^>= 0.8.0.5
+    , diagrams-lib ^>= 1.4.5.1
+    , diagrams-rasterific ^>= 1.4.2.2
+    , filepath ^>= 1.4.2.1
+    , hakyll ^>= 4.15.1.1
+    , hashable ^>= 1.3.5.0
+    , JuicyPixels ^>= 3.3.7
+    , linear ^>= 1.21.10
+    , optparse-applicative ^>= 0.16.1.0
+    , palette ^>= 0.3.0.2
+    , pandoc ^>= 2.19.2
+    , pandoc-types ^>= 1.22.2.1
+    , text ^>= 1.2.5.0
+    , vector ^>= 0.12.3.1
+    , yaml ^>= 0.11.8.0
