@@ -1,3 +1,4 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -61,22 +62,15 @@ writeOptions = defaultHakyllWriterOptions
 -- | Add links to sections, on hover
 -- Inspired by https://frasertweedale.github.io/blog-fp/posts/2020-12-10-hakyll-section-links.html
 addSectionLink :: Pandoc -> Pandoc
-addSectionLink = walk transformSectionHeaders
-
--- | Pandoc walker over section headers to add section links.
-transformSectionHeaders :: Block -> Block
-transformSectionHeaders (Header n attr@(aid, _, _) next) =
-  Header n attr $ next <> [Space, Link nullAttr [Str "🔗"] ("#" <> aid, "")]
-transformSectionHeaders x = x
+addSectionLink = walk \case
+  (Header n attr@(aid, _, _) next) ->
+    Header n attr $ next <> [Space, Link nullAttr [Str "🔗"] ("#" <> aid, "")]
+  block -> block
 
 -- | Add diagrams support.
 -- See https://mihai.page/ai-diagrams/
 addDiagrams :: Pandoc -> Compiler Pandoc
-addDiagrams = unsafeCompiler . walkM insertDiagrams
-
--- | Pandoc walker over code blocks to insert diagrams.
-insertDiagrams :: Block -> IO Block
-insertDiagrams = \case
+addDiagrams = unsafeCompiler . walkM \case
   CodeBlock as@(_, classes, attrs) src | "diagram" `elem` classes ->
     compileDiagram attrs src >>= \case
       Failure err -> return $ Div ("", ["error"], []) [Plain [Str err]]
