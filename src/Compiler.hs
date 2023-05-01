@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 {-|
@@ -28,6 +29,8 @@ import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
 
+import Diagrams
+
 -- | The default highlight style.
 --
 -- A global constant, used to color code.
@@ -40,9 +43,9 @@ highlightStyle = pygments
 --   * Enable MathJax for writing math code
 --   * Add links to each section, on hover
 blogCompiler :: Compiler (Item String)
-blogCompiler = pandocCompilerWithTransform readOptions writeOptions xforms
+blogCompiler = pandocCompilerWithTransformM readOptions writeOptions xforms
   where
-    xforms = addSectionLink
+    xforms = addDiagrams . addSectionLink
 
 -- | Read options for 'blogCompiler'.
 readOptions :: ReaderOptions
@@ -65,3 +68,19 @@ transformSectionHeaders :: Block -> Block
 transformSectionHeaders (Header n attr@(aid, _, _) next) =
   Header n attr $ next <> [Space, Link nullAttr [Str "🔗"] ("#" <> aid, "")]
 transformSectionHeaders x = x
+
+-- | Add diagrams support.
+-- See https://mihai.page/ai-diagrams/
+addDiagrams :: Pandoc -> Compiler Pandoc
+addDiagrams = unsafeCompiler . walkM insertDiagrams
+
+-- | Pandoc walker over code blocks to insert diagrams.
+insertDiagrams :: Block -> IO Block
+insertDiagrams = \case
+  CodeBlock as@(_, classes, attrs) src | "diagram" `elem` classes ->
+    compileDiagram attrs src >>= \case
+      Failure err -> return $ Div ("", ["error"], []) [Plain [Str err]]
+      Success img -> return $ Para [Image as (caption attrs) $ (img, "fig:")]
+  block -> return block
+  where
+    caption = maybe [] (\c -> [Str c]) . lookup "caption"
