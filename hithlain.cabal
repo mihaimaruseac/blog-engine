@@ -33,7 +33,7 @@ executable hithlain
     , References
     , Rules
   build-depends:
-    , base ^>= 4.15.1.0
+    , base ^>= 4.16.4.0
     , aeson ^>= 2.1.1.0
     , diagrams-builder ^>= 0.8.0.5
     , diagrams-lib ^>= 1.4.5.1
