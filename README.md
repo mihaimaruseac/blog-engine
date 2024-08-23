@@ -1,6 +1,8 @@
 hithlain
 ========
 
+:construction: This will get changed :construction:
+
 This is the source code for [my personal blog][blog]. It uses [Hakyll][hakyll]
 and [Haskell][haskell].
 
