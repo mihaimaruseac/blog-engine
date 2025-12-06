@@ -56,7 +56,7 @@ readOptions = defaultHakyllReaderOptions
 writeOptions :: WriterOptions
 writeOptions = defaultHakyllWriterOptions
   { writerHTMLMathMethod = MathJax ""
-  , writerHighlightStyle = Just highlightStyle
+  , writerHighlightMethod = Skylighting highlightStyle
   }
 
 -- | Add links to sections, on hover
