@@ -34,19 +34,19 @@ executable hithlain
     , Rules
   build-depends:
     , base ^>= 4.20.2
-    , aeson ^>= 2.2.3
+    , aeson ^>= 2.3.1
     , diagrams-builder ^>= 0.8.0.6
     , diagrams-lib ^>= 1.5.1
     , diagrams-rasterific ^>= 1.5
     , filepath ^>= 1.5.4
-    , hakyll ^>= 4.16.7.1
-    , hashable ^>= 1.5
+    , hakyll ^>= 4.17
+    , hashable ^>= 1.5.1
     , JuicyPixels ^>= 3.3.9
-    , linear ^>= 1.23.2
+    , linear ^>= 1.23.3
     , optparse-applicative ^>= 0.19
     , palette ^>= 0.3.0.4
-    , pandoc ^>= 3.8.3
-    , pandoc-types ^>= 1.23.1
-    , text ^>= 2.1.3
+    , pandoc ^>= 3.10.1
+    , pandoc-types ^>= 1.23.1.2
+    , text ^>= 2.1.4
     , vector ^>= 0.13.2
     , yaml ^>= 0.11.11.2
